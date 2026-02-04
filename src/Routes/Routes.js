@@ -4,20 +4,25 @@ import { createBrowserRouter } from "react-router-dom";
 
 import LoginPage from "../Pages/LoginPage";
 import PrivateRoute from "./PrivateRoute";
-import Expenditure from "../Pages/Expenditure"
+import Finance from "../Pages/Finance";
+import DocumentUpload from "../Pages/DocumentUpload";
 
 export const routes = createBrowserRouter([
-  {
-    path: "/Expenditure",
-    element: (
-      <PrivateRoute>
-        <Expenditure />
-      </PrivateRoute>
-    ),
-  },
+  // {
+  //   path: "/Expenditure",
+  //   element: (
+  //     <PrivateRoute>
+  //       <Expenditure />
+  //     </PrivateRoute>
+  //   ),
+  // },
   {
     path: "/*",
-    element: <LoginPage />,
+    element: <Finance />,
+  },
+  {
+    path: "/Upload",
+    element: <DocumentUpload />,
   },
   // {
   //   path: "/pfa",
