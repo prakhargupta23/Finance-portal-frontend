@@ -1,68 +1,39 @@
 import React, { useState, useRef } from 'react';
 import { uploadDocument } from '../services/document.service';
-import bg2 from '../assets/bg3.png';
+import '../css/Finance.css';
 
 const DocumentUpload = () => {
   const [activeTab, setActiveTab] = useState('upload');
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundImage: `url(${bg2})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      padding: '20px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
-    }}>
-      <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderRadius: '10px',
-        padding: '30px',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        width: '100%',
-        maxWidth: '800px'
-      }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Document Management</h2>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
-          <button
-            onClick={() => setActiveTab('upload')}
-            style={{
-              padding: '12px 24px',
-              marginRight: '10px',
-              backgroundColor: activeTab === 'upload' ? '#007bff' : '#f8f9fa',
-              color: activeTab === 'upload' ? 'white' : '#333',
-              border: '2px solid #007bff',
-              borderRadius: '25px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              transition: 'all 0.3s ease',
-              boxShadow: activeTab === 'upload' ? '0 2px 4px rgba(0, 123, 255, 0.3)' : 'none'
-            }}
-          >
-            Upload Document
-          </button>
-          <button
-            onClick={() => setActiveTab('review')}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: activeTab === 'review' ? '#007bff' : '#f8f9fa',
-              color: activeTab === 'review' ? 'white' : '#333',
-              border: '2px solid #007bff',
-              borderRadius: '25px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              transition: 'all 0.3s ease',
-              boxShadow: activeTab === 'review' ? '0 2px 4px rgba(0, 123, 255, 0.3)' : 'none'
-            }}
-          >
-            Review
-          </button>
+    <div className="finance-page">
+      <div style={{ padding: '24px 20px', maxWidth: '800px', margin: '0 auto' }}>
+        <div className="finance-header">
+          <h1 style={{ fontSize: '1.75rem', margin: 0, background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+            Document Management
+          </h1>
+          <p className="subtitle">Upload documents and review submissions</p>
         </div>
-        {activeTab === 'upload' && <UploadDocument />}
-        {activeTab === 'review' && <Review />}
+        <div className="finance-panel" style={{ backgroundColor: '#fff', padding: '24px 28px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setActiveTab('upload')}
+              className={`doc-tab-btn ${activeTab === 'upload' ? 'active' : ''}`}
+            >
+              Upload Document
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('review')}
+              className={`doc-tab-btn ${activeTab === 'review' ? 'active' : ''}`}
+            >
+              Review
+            </button>
+          </div>
+          {activeTab === 'upload' && <UploadDocument />}
+          {activeTab === 'review' && <Review />}
+        </div>
       </div>
     </div>
   );
@@ -99,49 +70,31 @@ const UploadDocument = () => {
 
   return (
     <div>
-      <h3 style={{ textAlign: 'center', marginBottom: '20px', color: '#555' }}>Upload Documents</h3>
+      <h3 style={{ textAlign: 'center', marginBottom: '20px', color: '#475569', fontWeight: 600, fontSize: '1.1rem' }}>
+        Upload Documents
+      </h3>
       {documents.map((doc, index) => (
-        <div key={index} style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '15px',
-          padding: '15px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          border: '1px solid #e9ecef',
-          transition: 'box-shadow 0.3s ease'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
-        onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-        >
-          <span style={{ flex: 1, fontWeight: 'bold', color: '#333' }}>{doc}</span>
+        <div key={index} className="doc-row">
+          <span className="doc-row-label">{doc}</span>
           {uploadedDocs[doc] ? (
-            <button
-              onClick={() => setActiveView(doc)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
+            <button type="button" onClick={() => setActiveView(doc)} className="doc-btn-primary">
               View
             </button>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <input
                 type="file"
-                ref={(el) => fileInputRefs.current[doc] = el}
+                ref={(el) => (fileInputRefs.current[doc] = el)}
                 onChange={(e) => setSelectedFiles(prev => ({ ...prev, [doc]: e.target.files?.[0] || null }))}
                 style={{ display: 'none' }}
               />
               {selectedFiles[doc] && (
-                <span style={{ fontSize: '14px', color: '#555' }}>{selectedFiles[doc]!.name}</span>
+                <span style={{ fontSize: '0.875rem', color: '#64748b', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {selectedFiles[doc]!.name}
+                </span>
               )}
               <button
+                type="button"
                 onClick={() => {
                   if (selectedFiles[doc]) {
                     uploadFile(doc, selectedFiles[doc]!);
@@ -150,42 +103,22 @@ const UploadDocument = () => {
                   }
                 }}
                 disabled={uploading[doc]}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: uploading[doc] ? '#ccc' : '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: uploading[doc] ? 'not-allowed' : 'pointer'
-                }}
+                className="doc-btn-primary"
               >
-                {uploading[doc] ? 'Uploading...' : selectedFiles[doc] ? 'Upload' : 'Choose File'}
+                {uploading[doc] ? 'Uploading…' : selectedFiles[doc] ? 'Upload' : 'Choose File'}
               </button>
             </div>
           )}
         </div>
       ))}
       {activeView && (
-        <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-          <h4 style={{ textAlign: 'center', marginBottom: '20px' }}>Viewing {activeView}</h4>
-          <iframe
-            src={uploadedDocs[activeView]}
-            width="100%"
-            height="600px"
-            style={{ border: '1px solid #ccc', borderRadius: '4px' }}
-          />
+        <div className="doc-viewer-panel">
+          <h4 style={{ textAlign: 'center', marginBottom: '20px', color: '#334155', fontWeight: 600 }}>
+            Viewing {activeView}
+          </h4>
+          <iframe src={uploadedDocs[activeView]} width="100%" height="600px" title={`Document: ${activeView}`} />
           <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <button
-              onClick={() => setActiveView(null)}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#dc3545',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
+            <button type="button" onClick={() => setActiveView(null)} className="doc-btn-close">
               Close
             </button>
           </div>
@@ -197,9 +130,14 @@ const UploadDocument = () => {
 
 const Review = () => {
   return (
-    <div style={{ textAlign: 'center', padding: '40px' }}>
-      <h3 style={{ color: '#555' }}>Review Section</h3>
-      <p style={{ color: '#777' }}>Review functionality will be implemented here.</p>
+    <div className="finance-empty-state" style={{ textAlign: 'center', padding: '48px 24px' }}>
+      <div className="icon-wrap" style={{ margin: '0 auto 1rem' }}>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor" />
+        </svg>
+      </div>
+      <h3 style={{ color: '#475569', fontWeight: 600, marginBottom: '8px' }}>Review Section</h3>
+      <p style={{ color: '#64748b', margin: 0 }}>Review functionality will be implemented here.</p>
     </div>
   );
 };

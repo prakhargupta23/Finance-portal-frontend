@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Box, 
-  Grid, 
-  Button, 
-  TextField, 
-  Paper, 
+import {
+  Box,
+  Grid,
+  Button,
+  TextField,
+  Paper,
   Typography,
   IconButton,
   Card,
@@ -14,8 +14,7 @@ import {
   Tabs,
   Tab,
   AppBar,
-  Toolbar,
-  Chip
+  Chip,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -23,6 +22,7 @@ import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
 import HistoryIcon from "@mui/icons-material/History";
 import DescriptionIcon from "@mui/icons-material/Description";
 import ChatBubbleIcon from "@mui/icons-material/ChatBubble";
+import "../css/Finance.css";
 
 interface Message {
   id: number;
@@ -115,28 +115,27 @@ export default function Finance() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600, color: "#1976d2" }}>
-        Finance Portal Dashboard
-      </Typography>
-      <Typography variant="subtitle1" gutterBottom sx={{ color: "text.secondary", mb: 3 }}>
-        Multi-tab interface for messaging, AI history, and document management
-      </Typography>
+    <Box className="finance-page">
+      <Container maxWidth="lg" sx={{ py: 4, px: { xs: 2, sm: 3 } }}>
+        <Box className="finance-header">
+          <Typography variant="h4" component="h1" sx={{ fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" } }}>
+            Finance Portal Dashboard
+          </Typography>
+          <p className="subtitle">Multi-tab interface for messaging, AI history, and document management</p>
+        </Box>
 
-      <Grid container spacing={3}>
-        {/* LEFT HALF - Two Tabs */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ height: "70vh", display: "flex", flexDirection: "column" }}>
-            <AppBar position="static" color="default" elevation={1}>
-              <Tabs 
-                value={leftTabValue} 
-                onChange={(e, newValue) => setLeftTabValue(newValue)}
-                aria-label="left section tabs"
-                sx={{ 
-                  "& .MuiTab-root": { fontWeight: 600, minHeight: 48 },
-                  "& .Mui-selected": { color: "#1976d2" }
-                }}
-              >
+        <Grid container spacing={3}>
+          {/* LEFT HALF - Two Tabs */}
+          <Grid item xs={12} md={6}>
+            <Paper className="finance-panel" elevation={0} sx={{ height: "72vh", display: "flex", flexDirection: "column", bgcolor: "#ffffff" }}>
+              <AppBar position="static" color="default" elevation={0} sx={{ bgcolor: "#fafafa", borderBottom: "1px solid", borderColor: "divider" }}>
+                <Tabs
+                  className="finance-tabs"
+                  value={leftTabValue}
+                  onChange={(e, newValue) => setLeftTabValue(newValue)}
+                  aria-label="left section tabs"
+                  sx={{ "& .MuiTab-root": { minHeight: 52 }, "& .MuiTab-iconWrapper": { mr: 1 } }}
+                >
                 <Tab 
                   icon={<ChatBubbleIcon />} 
                   iconPosition="start" 
@@ -169,19 +168,15 @@ export default function Finance() {
                   flexShrink: 0,
                   px: 2
                 }}>
-                  <FormatQuoteIcon sx={{ mr: 1, color: "primary.main" }} />
+                  <FormatQuoteIcon sx={{ mr: 1, color: "#0d9488" }} />
                   <Typography variant="h6" component="h2" noWrap>
                     Message History
                   </Typography>
-                  <Chip 
-                    label={`${messages.length} messages`} 
-                    size="small" 
-                    sx={{ 
-                      ml: "auto", 
-                      bgcolor: "primary.light", 
-                      color: "white",
-                      flexShrink: 0
-                    }}
+                  <Chip
+                    className="finance-chip-messages"
+                    label={`${messages.length} messages`}
+                    size="small"
+                    sx={{ ml: "auto", flexShrink: 0 }}
                   />
                 </Box>
                 
@@ -194,32 +189,42 @@ export default function Finance() {
                   mt: 1
                 }}>
                   {messages.length === 0 ? (
-                    <Box sx={{ 
-                      textAlign: "center", 
-                      py: 8, 
-                      color: "text.secondary",
-                      height: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center"
-                    }}>
-                      <FormatQuoteIcon sx={{ fontSize: 48, opacity: 0.3, mb: 2 }} />
-                      <Typography variant="body1">
-                        No messages yet. Start typing on the right!
+                    <Box
+                      className="finance-empty-state"
+                      sx={{
+                        textAlign: "center",
+                        py: 6,
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        px: 2,
+                      }}
+                    >
+                      <Box className="icon-wrap">
+                        <FormatQuoteIcon sx={{ fontSize: 40 }} />
+                      </Box>
+                      <Typography variant="body1" sx={{ fontWeight: 500, color: "#475569", mb: 0.5 }}>
+                        No messages yet
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        Start typing on the right to add your first message.
                       </Typography>
                     </Box>
                   ) : (
                     <Box sx={{ pb: 1 }}>
                       {messages.map((message) => (
-                        <Card 
-                          key={message.id} 
-                          variant="outlined" 
-                          sx={{ 
-                            mb: 2, 
-                            "&:hover": { boxShadow: 2 },
+                        <Card
+                          key={message.id}
+                          className="finance-message-card"
+                          variant="outlined"
+                          sx={{
+                            mb: 2,
                             width: "100%",
-                            overflow: "visible"
+                            overflow: "visible",
+                            position: "relative",
+                            pl: 1.5,
                           }}
                         >
                           <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
@@ -285,38 +290,37 @@ export default function Finance() {
                   flexShrink: 0,
                   px: 2
                 }}>
-                  <HistoryIcon sx={{ mr: 1, color: "secondary.main" }} />
+                  <HistoryIcon sx={{ mr: 1, color: "#0d9488" }} />
                   <Typography variant="h6" component="h2" noWrap>
                     AI Conversation History
                   </Typography>
-                  <Chip 
-                    label="Coming Soon" 
-                    size="small" 
-                    color="secondary" 
-                    sx={{ ml: "auto", flexShrink: 0 }}
-                  />
+                  <Chip className="finance-chip-coming" label="Coming Soon" size="small" sx={{ ml: "auto", flexShrink: 0 }} />
                 </Box>
                 
                 <Divider sx={{ flexShrink: 0 }} />
                 
-                <Box sx={{ 
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "text.secondary",
-                  px: 2,
-                  py: 2
-                }}>
-                  <HistoryIcon sx={{ fontSize: 64, opacity: 0.2, mb: 3 }} />
-                  <Typography variant="h6" gutterBottom align="center">
+                <Box
+                  className="finance-empty-state"
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    px: 2,
+                    py: 2,
+                  }}
+                >
+                  <Box className="icon-wrap">
+                    <HistoryIcon sx={{ fontSize: 40 }} />
+                  </Box>
+                  <Typography variant="h6" gutterBottom align="center" sx={{ color: "#475569", fontWeight: 600 }}>
                     AI History Section
                   </Typography>
-                  <Typography variant="body2" align="center" sx={{ maxWidth: "80%", mb: 2 }}>
+                  <Typography variant="body2" align="center" sx={{ maxWidth: "85%", mb: 2, color: "#64748b" }}>
                     This tab will display your previous AI conversations, queries, and analysis.
                   </Typography>
-                  <Typography variant="caption" color="text.disabled" align="center">
+                  <Typography variant="caption" align="center" sx={{ color: "#94a3b8" }}>
                     Configure AI integration to start seeing your history here.
                   </Typography>
                 </Box>
@@ -327,16 +331,14 @@ export default function Finance() {
 
         {/* RIGHT HALF - Two Tabs */}
         <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ height: "70vh", display: "flex", flexDirection: "column" }}>
-            <AppBar position="static" color="default" elevation={1}>
-              <Tabs 
-                value={rightTabValue} 
+          <Paper className="finance-panel" elevation={0} sx={{ height: "72vh", display: "flex", flexDirection: "column", bgcolor: "#ffffff" }}>
+            <AppBar position="static" color="default" elevation={0} sx={{ bgcolor: "#fafafa", borderBottom: "1px solid", borderColor: "divider" }}>
+              <Tabs
+                className="finance-tabs"
+                value={rightTabValue}
                 onChange={(e, newValue) => setRightTabValue(newValue)}
                 aria-label="right section tabs"
-                sx={{ 
-                  "& .MuiTab-root": { fontWeight: 600, minHeight: 48 },
-                  "& .Mui-selected": { color: "#1976d2" }
-                }}
+                sx={{ "& .MuiTab-root": { minHeight: 52 }, "& .MuiTab-iconWrapper": { mr: 1 } }}
               >
                 <Tab 
                   icon={<SendIcon />} 
@@ -378,7 +380,7 @@ export default function Finance() {
                       mb: 2
                     }}
                   >
-                    <SendIcon sx={{ mr: 1, color: "primary.main" }} />
+                    <SendIcon sx={{ mr: 1, color: "#0d9488" }} />
                     Compose New Message
                   </Typography>
                   
@@ -394,25 +396,25 @@ export default function Finance() {
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       onKeyDown={handleKeyPress}
-                      placeholder="Type your message here... You can use Shift+Enter for new lines, or just Enter to submit."
+                      placeholder="Type your message here… Use Shift+Enter for new lines, or Enter to submit."
                       variant="outlined"
-                      sx={{ 
+                      sx={{
                         flex: 1,
                         "& .MuiOutlinedInput-root": {
                           height: "100%",
                           alignItems: "flex-start",
-                        }
+                          borderRadius: 2,
+                          bgcolor: "#f8fafc",
+                          "&:hover": { bgcolor: "#f1f5f9" },
+                          "&.Mui-focused": { bgcolor: "#fff" },
+                        },
                       }}
-                      inputProps={{
-                        maxLength: 1000
-                      }}
+                      inputProps={{ maxLength: 1000 }}
                       InputProps={{
                         sx: {
                           height: "100%",
-                          "& textarea": {
-                            resize: "none"
-                          }
-                        }
+                          "& textarea": { resize: "none" },
+                        },
                       }}
                     />
                   </Box>
@@ -433,6 +435,7 @@ export default function Finance() {
                     </Typography>
                     
                     <Button
+                      className="finance-submit-btn"
                       variant="contained"
                       endIcon={<SendIcon />}
                       onClick={handleSubmit}
@@ -461,38 +464,37 @@ export default function Finance() {
                   flexShrink: 0,
                   px: 2
                 }}>
-                  <DescriptionIcon sx={{ mr: 1, color: "secondary.main" }} />
+                  <DescriptionIcon sx={{ mr: 1, color: "#0d9488" }} />
                   <Typography variant="h6" component="h2" noWrap>
                     Document Viewer
                   </Typography>
-                  <Chip 
-                    label="Empty" 
-                    size="small" 
-                    color="secondary" 
-                    sx={{ ml: "auto", flexShrink: 0 }}
-                  />
+                  <Chip className="finance-chip-coming" label="Empty" size="small" sx={{ ml: "auto", flexShrink: 0 }} />
                 </Box>
-                
+
                 <Divider sx={{ flexShrink: 0 }} />
-                
-                <Box sx={{ 
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "text.secondary",
-                  px: 2,
-                  py: 2
-                }}>
-                  <DescriptionIcon sx={{ fontSize: 64, opacity: 0.2, mb: 3 }} />
-                  <Typography variant="h6" gutterBottom align="center">
+
+                <Box
+                  className="finance-empty-state"
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    px: 2,
+                    py: 2,
+                  }}
+                >
+                  <Box className="icon-wrap">
+                    <DescriptionIcon sx={{ fontSize: 40 }} />
+                  </Box>
+                  <Typography variant="h6" gutterBottom align="center" sx={{ color: "#475569", fontWeight: 600 }}>
                     Document View Section
                   </Typography>
-                  <Typography variant="body2" align="center" sx={{ maxWidth: "80%", mb: 2 }}>
+                  <Typography variant="body2" align="center" sx={{ maxWidth: "85%", mb: 2, color: "#64748b" }}>
                     This tab will display uploaded documents, PDFs, or other financial reports for analysis.
                   </Typography>
-                  <Typography variant="caption" color="text.disabled" align="center">
+                  <Typography variant="caption" align="center" sx={{ color: "#94a3b8" }}>
                     Upload documents to view them here.
                   </Typography>
                 </Box>
@@ -502,18 +504,13 @@ export default function Finance() {
         </Grid>
       </Grid>
 
-      {/* Footer Stats */}
-      <Box sx={{ 
-        mt: 3, 
-        display: "flex", 
-        justifyContent: "space-between",
-        flexWrap: "wrap",
-        gap: 1
-      }}>
-        <Typography variant="caption" color="text.secondary">
-          Total Messages: {messages.length} • Last Updated: {new Date().toLocaleTimeString()}
-        </Typography>
-      </Box>
-    </Container>
+        {/* Footer Stats */}
+        <Box className="finance-footer">
+          <Typography variant="caption" component="span">
+            Total messages: {messages.length} · Last updated: {new Date().toLocaleTimeString()}
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
   );
 }

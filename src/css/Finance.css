@@ -1,0 +1,247 @@
+/* Finance Portal – page-level polish */
+
+.finance-page {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #f0f9ff 0%, #e0f2fe 35%, #f8fafc 70%, #f1f5f9 100%);
+  background-attachment: fixed;
+}
+
+.finance-header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  color: #f8fafc;
+  padding: 1.75rem 2rem;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.finance-header h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.25rem 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.finance-header .subtitle {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.finance-panel {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.finance-panel:hover {
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.finance-tabs .MuiTab-root {
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.finance-tabs .Mui-selected {
+  color: #0d9488 !important;
+}
+
+.finance-tabs .MuiTabs-indicator {
+  background: linear-gradient(90deg, #0d9488, #14b8a6);
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
+.finance-message-card {
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.finance-message-card:hover {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.finance-message-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #0d9488, #14b8a6);
+  border-radius: 4px 0 0 4px;
+}
+
+.finance-empty-state {
+  color: #64748b;
+}
+
+.finance-empty-state .icon-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.finance-empty-state .icon-wrap svg {
+  color: #0d9488;
+  opacity: 0.9;
+}
+
+.finance-submit-btn {
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35) !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0.02em !important;
+  transition: box-shadow 0.2s ease, transform 0.15s ease !important;
+}
+
+.finance-submit-btn:hover {
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.finance-submit-btn:disabled {
+  background: #cbd5e1 !important;
+  box-shadow: none !important;
+}
+
+.finance-footer {
+  padding: 0.75rem 0;
+  color: #64748b;
+  font-size: 0.8rem;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 0.5rem;
+}
+
+/* Chip badges */
+.finance-chip-messages {
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+.finance-chip-coming {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+  color: #f1f5f9 !important;
+  font-weight: 500 !important;
+}
+
+/* Document Upload page – shared theme */
+.doc-tab-btn {
+  padding: 12px 24px;
+  margin-right: 10px;
+  border: 2px solid #0d9488;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  background: #f8fafc;
+  color: #475569;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.doc-tab-btn:hover {
+  background: #f0fdfa;
+  color: #0d9488;
+}
+
+.doc-tab-btn.active {
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+  color: #fff;
+  border-color: #0d9488;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
+}
+
+.doc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 16px 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.doc-row:hover {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.doc-row-label {
+  flex: 1;
+  font-weight: 600;
+  color: #334155;
+}
+
+.doc-btn-primary {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
+}
+
+.doc-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.4);
+  transform: translateY(-1px);
+}
+
+.doc-btn-primary:disabled {
+  background: #cbd5e1;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.doc-btn-close {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.doc-btn-close:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.doc-viewer-panel {
+  margin-top: 24px;
+  padding: 24px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.doc-viewer-panel iframe {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
