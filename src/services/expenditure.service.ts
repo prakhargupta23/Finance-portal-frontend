@@ -31,11 +31,6 @@ const documentKeys = {
 };
 
 
-
-
-
-
-
 const getdata = async (file: File, documentType: keyof typeof documentKeys, rowId: number) => {
   console.log("called");
 
@@ -43,24 +38,18 @@ const getdata = async (file: File, documentType: keyof typeof documentKeys, rowI
   const fileBase64 = await convertFileToBase64(file); 
   const cleanBase64 = (fileBase64 as string).split(',')[1]; 
   
-
   const data = {
-    prompt: documentKeys[documentType].description,
+    prompt: "Extract all data",
     fileBase64: cleanBase64,
     documentType: documentType,
-    rowId: rowId,
+    rowId: "1",
   };
 
   console.log("Sending to API:", data);
 
   try {
-    const answer = await fetchWrapper.post(`${config.apiUrl}/api/extract-expenditure-data`, data);
+    const answer = await fetchWrapper.post(`${config.apiUrl}/api/extract-finance-data`, data);
     console.log("gpt answer", answer);
-    if(documentType === "GSTInvoice"){
-      return answer?{response:"success",IREPSRegNo:answer.regno} : {response:"error"};
-    }else{
-      return answer?{response:"success"} : {response:"error"};
-    }
   } catch (err) {
     console.error("Fetch error:", err);
     throw err;

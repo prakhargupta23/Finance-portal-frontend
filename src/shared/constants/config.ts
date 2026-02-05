@@ -1,9 +1,8 @@
 /** @format */
 
 const dev = Object.freeze({
-  //apiUrl: "https://nwr-pension-2025.azurewebsites.net",
-  apiUrl: "https://backendnwr.azurewebsites.net",
-  //apiUrl: "http://localhost:7071",
+  //apiUrl: "https://backendnwr.azurewebsites.net",
+  apiUrl: "http://localhost:7071",
 });
 
 

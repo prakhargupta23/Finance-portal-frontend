@@ -1,53 +1,87 @@
 import React, { useState, useRef } from 'react';
-import { uploadDocument } from '../services/document.service';
-import '../css/Finance.css';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Tabs,
+  Tab,
+  Typography,
+  Stack,
+  Modal,
+  IconButton,
+  Paper,
+} from '@mui/material';
+import {
+  CloudUpload as CloudUploadIcon,
+  Download as DownloadIcon,
+  Close as CloseIcon,
+  CheckCircle as CheckCircleIcon,
+  Visibility as VisibilityIcon,
+} from '@mui/icons-material';
+import { uploadDocumenttoblob, getdata } from '../services/document.service';
+
 
 const DocumentUpload = () => {
-  const [activeTab, setActiveTab] = useState('upload');
+  const [activeTab, setActiveTab] = useState(0);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
 
   return (
-    <div className="finance-page">
-      <div className="finance-top-bar">
-        <span>Document Management - Upload Portal</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#28a745' }}></span>
-            STATUS ACTIVE
-          </span>
-        </span>
-      </div>
-      <div style={{ padding: '24px 20px', maxWidth: '800px', margin: '0 auto' }}>
-        <div className="finance-header">
-          <h1 style={{ fontSize: '1.75rem', margin: 0, color: '#343a40', fontWeight: 700 }}>
+    <Box className="finance-page">
+      <Box className="finance-top-bar">
+        <Typography variant="subtitle1">Document Management - Upload Portal</Typography>
+        <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Stack direction="row" alignItems="center" spacing={0.75}>
+            <Box
+              sx={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#28a745',
+              }}
+            />
+            <Typography variant="caption">STATUS ACTIVE</Typography>
+          </Stack>
+        </Stack>
+      </Box>
+      <Box sx={{ bgcolor: '#dfdede', padding: '24px 20px', maxWidth: '100%', margin: '0 auto' }}>
+        <Box sx={{ bgcolor: '#ffffff', padding: '24px 20px', maxWidth: '60%', margin: '0 auto' }}>
+        <Box className="finance-header">
+          <Typography variant="h5" sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#343a40' }}>
             Document Management
-          </h1>
-          <p className="subtitle">Upload documents and review submissions</p>
-        </div>
-        <div className="finance-panel" style={{ backgroundColor: '#fff', padding: '24px 28px' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '8px' }}>
-            <button
-              type="button"
-              onClick={() => setActiveTab('upload')}
-              className={`doc-tab-btn ${activeTab === 'upload' ? 'active' : ''}`}
+          </Typography>
+          <Typography className="subtitle">Upload documents and review submissions</Typography>
+        </Box>
+        <Card className="finance-panel" sx={{ backgroundColor: '#fff', padding: '24px 28px' }}>
+          <CardContent sx={{ padding: 0 }}>
+            <Tabs
+              value={activeTab}
+              onChange={handleTabChange}
+              sx={{
+                marginBottom: '28px',
+                '& .MuiTabs-indicator': {
+                  backgroundColor: '#007bff',
+                },
+              }}
             >
-              Upload Document
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('review')}
-              className={`doc-tab-btn ${activeTab === 'review' ? 'active' : ''}`}
-            >
-              Review
-            </button>
-          </div>
-          {activeTab === 'upload' && <UploadDocument />}
-          {activeTab === 'review' && <Review />}
-        </div>
-        <div className="finance-footer">
-          <span>Document Management Portal</span>
-        </div>
-      </div>
-    </div>
+              <Tab label="Upload Document" />
+              <Tab label="Review" />
+            </Tabs>
+            <Box>
+              {activeTab === 0 && <UploadDocument />}
+              {activeTab === 1 && <Review />}
+            </Box>
+          </CardContent>
+        </Card>
+        <Box className="finance-footer">
+          <Typography variant="caption">Document Management Portal</Typography>
+        </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
@@ -61,7 +95,10 @@ const UploadDocument = () => {
   const uploadFile = async (doc: string, file: File) => {
     setUploading(prev => ({ ...prev, [doc]: true }));
     try {
-      const url = await uploadDocument(doc, file);
+      console.log("Uploading file for document:", doc, file);
+      const fetchdata = getdata(file, "GSTInvoice", 1);
+      console.log("fetchdata", fetchdata);
+      const url = await uploadDocumenttoblob(doc, file);
       setUploadedDocs(prev => ({ ...prev, [doc]: url }));
       setSelectedFiles(prev => ({ ...prev, [doc]: null }));
     } catch (error) {
@@ -80,77 +117,219 @@ const UploadDocument = () => {
     'Top sheet'
   ];
 
+  const handleDownload = (url: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', '');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div>
-      <h3 style={{ textAlign: 'center', marginBottom: '20px', color: '#343a40', fontWeight: 600, fontSize: '1.1rem' }}>
+    <Box>
+      <Typography
+        variant="h6"
+        sx={{
+          textAlign: 'center',
+          marginBottom: '20px',
+          color: '#343a40',
+          fontWeight: 600,
+          fontSize: '1.1rem'
+        }}
+      >
         Upload Documents
-      </h3>
-      {documents.map((doc, index) => (
-        <div key={index} className="doc-row">
-          <span className="doc-row-label">{doc}</span>
-          {uploadedDocs[doc] ? (
-            <button type="button" onClick={() => setActiveView(doc)} className="doc-btn-primary">
-              View
-            </button>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input
-                type="file"
-                ref={(el) => (fileInputRefs.current[doc] = el)}
-                onChange={(e) => setSelectedFiles(prev => ({ ...prev, [doc]: e.target.files?.[0] || null }))}
-                style={{ display: 'none' }}
-              />
-              {selectedFiles[doc] && (
-                <span style={{ fontSize: '0.875rem', color: '#6c757d', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {selectedFiles[doc]!.name}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => {
-                  if (selectedFiles[doc]) {
-                    uploadFile(doc, selectedFiles[doc]!);
-                  } else {
-                    fileInputRefs.current[doc]?.click();
-                  }
-                }}
-                disabled={uploading[doc]}
-                className="doc-btn-primary"
-              >
-                {uploading[doc] ? 'Uploading…' : selectedFiles[doc] ? 'Upload' : 'Choose File'}
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
-      {activeView && (
-        <div className="doc-viewer-panel">
-          <h4 style={{ textAlign: 'center', marginBottom: '20px', color: '#343a40', fontWeight: 600 }}>
-            Viewing {activeView}
-          </h4>
-          <iframe src={uploadedDocs[activeView]} width="100%" height="600px" title={`Document: ${activeView}`} />
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <button type="button" onClick={() => setActiveView(null)} className="doc-btn-close">
+      </Typography>
+      <Stack spacing={2}>
+        {documents.map((doc, index) => (
+          <Paper
+            key={index}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '16px',
+              backgroundColor: '#f8f9fa',
+              border: '1px solid #e9ecef',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                transform: 'translateY(-2px)',
+              },
+            }}
+            className="doc-row"
+          >
+            <Typography sx={{ flex: 1, fontWeight: 600, color: '#343a40', fontSize: '0.95rem' }}>
+              {doc}
+            </Typography>
+            {uploadedDocs[doc] ? (
+              <Stack direction="row" spacing={1}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="small"
+                  startIcon={<VisibilityIcon />}
+                  onClick={() => window.open(uploadedDocs[doc], '_blank')}
+                  className="doc-btn-primary"
+                >
+                  View
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  startIcon={<DownloadIcon />}
+                  onClick={() => handleDownload(uploadedDocs[doc])}
+                >
+                  Download
+                </Button>
+              </Stack>
+            ) : (
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <input
+                  type="file"
+                  ref={(el) => (fileInputRefs.current[doc] = el)}
+                  onChange={(e) => setSelectedFiles(prev => ({ ...prev, [doc]: e.target.files?.[0] || null }))}
+                  style={{ display: 'none' }}
+                />
+                {selectedFiles[doc] && (
+                  <Typography
+                    sx={{
+                      fontSize: '0.85rem',
+                      color: '#6c757d',
+                      maxWidth: '140px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {selectedFiles[doc]!.name}
+                  </Typography>
+                )}
+                <Button
+                  variant="contained"
+                  color={selectedFiles[doc] ? 'warning' : 'primary'}
+                  size="small"
+                  startIcon={selectedFiles[doc] ? <CloudUploadIcon /> : undefined}
+                  disabled={uploading[doc]}
+                  onClick={() => {
+                    if (selectedFiles[doc]) {
+                      uploadFile(doc, selectedFiles[doc]!);
+                    } else {
+                      fileInputRefs.current[doc]?.click();
+                    }
+                  }}
+                  className="doc-btn-primary"
+                >
+                  {uploading[doc] ? 'Uploading…' : selectedFiles[doc] ? 'Upload' : 'Choose File'}
+                </Button>
+              </Stack>
+            )}
+          </Paper>
+        ))}
+      </Stack>
+      <Modal open={!!activeView} onClose={() => setActiveView(null)}>
+        <Paper
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: '800px',
+            maxHeight: '90%',
+            backgroundColor: 'white',
+            padding: '20px',
+            borderRadius: '8px',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'auto',
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <Typography variant="h6" sx={{ color: '#343a40', fontWeight: 600 }}>
+              Viewing {activeView}
+            </Typography>
+            <IconButton
+              onClick={() => setActiveView(null)}
+              size="small"
+              sx={{ color: '#f44336' }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <Box
+            component="iframe"
+            src={activeView ? uploadedDocs[activeView] : ''}
+            sx={{
+              width: '100%',
+              height: '500px',
+              border: 'none',
+              borderRadius: '4px',
+              flex: 1,
+              marginBottom: '16px',
+            }}
+            title={`Document: ${activeView}`}
+          />
+          <Stack direction="row" spacing={2} justifyContent="center">
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<DownloadIcon />}
+              onClick={() => handleDownload(uploadedDocs[activeView!])}
+            >
+              Download
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<CloseIcon />}
+              onClick={() => setActiveView(null)}
+            >
               Close
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+            </Button>
+          </Stack>
+        </Paper>
+      </Modal>
+    </Box>
   );
 };
 
 const Review = () => {
   return (
-    <div className="finance-empty-state" style={{ textAlign: 'center', padding: '48px 24px' }}>
-      <div className="icon-wrap" style={{ margin: '0 auto 1rem' }}>
+    <Box
+      sx={{
+        textAlign: 'center',
+        padding: '48px 24px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 2,
+      }}
+      className="finance-empty-state"
+    >
+      <Box
+        sx={{
+          width: '40px',
+          height: '40px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#6c757d',
+        }}
+      >
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor" />
         </svg>
-      </div>
-      <h3 style={{ color: '#343a40', fontWeight: 600, marginBottom: '8px' }}>Review Section</h3>
-      <p style={{ color: '#6c757d', margin: 0 }}>Review functionality will be implemented here.</p>
-    </div>
+      </Box>
+      <Typography variant="h6" sx={{ color: '#343a40', fontWeight: 600 }}>
+        Review Section
+      </Typography>
+      <Typography variant="body2" sx={{ color: '#6c757d' }}>
+        Review functionality will be implemented here.
+      </Typography>
+    </Box>
   );
 };
 
