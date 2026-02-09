@@ -115,17 +115,18 @@ export default function Finance() {
   };
 
   return (
-    <Box className="finance-page">
+    <Box className="finance-page finance-page--dashboard">
       <Box className="finance-top-bar">
         <span>Finance Portal - Dashboard</span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#28a745' }}></span>
+          <span className="finance-status-wrap" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="finance-status-dot" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#28a745' }}></span>
             STATUS ACTIVE
           </span>
         </span>
       </Box>
-      <Container maxWidth="lg" sx={{ py: 4, px: { xs: 2, sm: 3 } }}>
+      <Container className="finance-scene" maxWidth="lg" sx={{ py: 4, px: { xs: 2, sm: 3 } }}>
+        <Box className="finance-platform" aria-hidden="true" />
         <Box className="finance-header">
           <Typography variant="h4" component="h1" sx={{ fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" }, color: '#343a40', fontWeight: 700 }}>
             Finance Portal Dashboard
@@ -133,10 +134,10 @@ export default function Finance() {
           <p className="subtitle">Multi-tab interface for messaging, AI history, and document management</p>
         </Box>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={3} className="finance-grid">
           {/* LEFT HALF - Two Tabs */}
           <Grid item xs={12} md={6}>
-            <Paper className="finance-panel" elevation={0} sx={{ height: "72vh", display: "flex", flexDirection: "column", bgcolor: "#ffffff" }}>
+            <Paper className="finance-panel finance-panel--floating" elevation={0} sx={{ height: "72vh", display: "flex", flexDirection: "column", bgcolor: "#ffffff" }}>
               <AppBar position="static" color="default" elevation={0} sx={{ bgcolor: "#fafafa", borderBottom: "1px solid", borderColor: "divider" }}>
                 <Tabs
                   className="finance-tabs"
@@ -340,7 +341,7 @@ export default function Finance() {
 
         {/* RIGHT HALF - Two Tabs */}
         <Grid item xs={12} md={6}>
-          <Paper className="finance-panel" elevation={0} sx={{ height: "72vh", display: "flex", flexDirection: "column", bgcolor: "#ffffff" }}>
+          <Paper className="finance-panel finance-panel--floating" elevation={0} sx={{ height: "72vh", display: "flex", flexDirection: "column", bgcolor: "#ffffff" }}>
             <AppBar position="static" color="default" elevation={0} sx={{ bgcolor: "#fafafa", borderBottom: "1px solid", borderColor: "divider" }}>
               <Tabs
                 className="finance-tabs"
