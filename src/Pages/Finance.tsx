@@ -22,7 +22,7 @@ import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
 import HistoryIcon from "@mui/icons-material/History";
 import DescriptionIcon from "@mui/icons-material/Description";
 import ChatBubbleIcon from "@mui/icons-material/ChatBubble";
-import "../css/Finance.css";
+
 
 interface Message {
   id: number;

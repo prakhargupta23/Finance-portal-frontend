@@ -116,12 +116,26 @@ const UploadDocument = () => {
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
   const [activeView, setActiveView] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const documentTypeByDoc: { [key: string]: "ReceiptNote" | "TaxInvoice" | "GSTInvoice" | "ModificationAdvice" | "InspectionCertificate" | "PurchaseOrder" } = {
+    'DRM APP': 'GSTInvoice',
+    'D&G Letter': 'TaxInvoice',
+    'Estimate reference': 'ReceiptNote',
+    'Func distribution letter': 'ModificationAdvice',
+    'Top sheet': 'PurchaseOrder',
+  };
+  const apiPathByDoc: { [key: string]: string } = {
+    'D&G Letter': '/api/extract-GM-data',
+  };
 
   const uploadFile = async (doc: string, file: File) => {
     setUploading(prev => ({ ...prev, [doc]: true }));
     try {
+      const documentType = documentTypeByDoc[doc] || 'GSTInvoice';
+      const apiPath = apiPathByDoc[doc] || '/api/extract-finance-data';
       console.log("Uploading file for document:", doc, file);
-      const fetchdata = getdata(file, "GSTInvoice", 1);
+      console.log("Using document type:", documentType);
+      console.log("Using API path:", apiPath);
+      const fetchdata = await getdata(file, documentType, 1, apiPath);
       console.log("fetchdata", fetchdata);
       const url = await uploadDocumenttoblob(doc, file);
       setUploadedDocs(prev => ({ ...prev, [doc]: url }));
@@ -246,7 +260,7 @@ const UploadDocument = () => {
                   }}
                   className="doc-btn-primary"
                 >
-                  {uploading[doc] ? 'Uploading…' : selectedFiles[doc] ? 'Upload' : 'Choose File'}
+                  {uploading[doc] ? 'Uploading...' : selectedFiles[doc] ? 'Upload' : 'Choose File'}
                 </Button>
               </Stack>
             )}
