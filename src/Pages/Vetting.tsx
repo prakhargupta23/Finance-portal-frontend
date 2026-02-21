@@ -48,19 +48,17 @@ const Card: React.FC<{ title?: string; right?: React.ReactNode; children?: React
 );
 
 const ControlHub: React.FC<{
-	onAccessTrack: () => void;
 	planHeads: string[];
 	selectedPlanHead: string;
 	onSelectPlanHead: (ph: string) => void;
 	analytics: { works: number; pipelineValue: string; avgDays: string };
-	currentWorkName?: string;
+	bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number };
 }> = ({
-	onAccessTrack,
 	planHeads,
 	selectedPlanHead,
 	onSelectPlanHead,
 	analytics,
-	currentWorkName,
+	bucketDays,
 }) => {
 	const [pendingPH, setPendingPH] = useState<string>(selectedPlanHead);
 	useEffect(() => {
@@ -71,7 +69,6 @@ const ControlHub: React.FC<{
 			<div className="st-header-row">
 				<h2 className="st-section-title">CONTROL HUB</h2>
 				<div className="st-header-actions">
-					<div className="st-total-pipeline">TOTAL PIPELINE VALUE <span>{currency(analytics.pipelineValue || "-")}</span></div>
 					<button className="st-btn st-btn-primary">+ AUDIT NEW PROPOSAL</button>
 				</div>
 			</div>
@@ -104,7 +101,6 @@ const ControlHub: React.FC<{
 								</span>
 							</div>
 						</div>
-						<div className="st-mini-chart" aria-label="mini chart" />
 					</div>
 				</Card>
 
@@ -112,91 +108,12 @@ const ControlHub: React.FC<{
 					<div className="st-proposal">
 						<div className="st-prop-head">
 							<div className="st-prop-scope">HQ FINANCE</div>
-							<div className="st-prop-id">INTERNAL CASE ID: 2225</div>
 						</div>
-						<h3 className="st-prop-title">{currentWorkName || "REDEVELOPMENT OF YARD DRAINAGE SYSTEM - MUGHALSARAI"}</h3>
-						<div className="st-prop-meta">
-							<div className="st-kv">
-								<span className="st-k">ASSET VALUATION</span>
-								<span className="st-v">{currency(analytics.pipelineValue || "18,50,00,000")}</span>
-							</div>
-							<div className="st-kv">
-								<span className="st-k">BUDGET ALLOCATION</span>
-								<span className="st-v">{selectedPlanHead || "PH-11 (NEW LINES)"}</span>
-							</div>
-						</div>
-						<div className="st-prop-metrics">
-							<MetricBadge label="COMPLIANCE" value="78%" />
-							<MetricBadge label="JUSTIFICATION" value="82%" />
-						</div>
-						<div className="st-prop-actions">
-							<button className="st-btn st-btn-dark" onClick={onAccessTrack}>ACCESS FILE TRACK</button>
-						</div>
+						<AvgDelayBoxes bucketDays={bucketDays} />
 					</div>
 				</Card>
 			</div>
 		</section>
-	);
-};
-
-const DetailedScrutiny: React.FC<{ summary?: string; observationsData?: Observation[] }> = ({ summary, observationsData }) => {
-	const observations: Observation[] = useMemo(
-		() => [
-			{ id: 1, text: "Rates based on SOR 2024 but include 15% labor escalation" },
-			{ id: 2, text: "Market survey for pipe fittings pending verification" },
-		],
-		[]
-	);
-
-	return (
-		<div className="st-split st-split-2">
-			<div>
-				<Card title="EXECUTIVE SUMMARY">
-					<p>
-						{summary ?? "Comprehensive drainage overhaul to prevent track flooding during monsoons."}
-					</p>
-				</Card>
-
-				<Card title="DETAILED AUDIT OBSERVATIONS">
-					<ol className="st-list">
-						{(observationsData ?? observations).map((o) => (
-							<li key={o.id}>{o.text}</li>
-						))}
-					</ol>
-				</Card>
-
-				<Card title="PERFORMANCE ANALYTICS (PH-HEAD WEIGHTED)">
-					<div className="st-kv-grid">
-						<div className="st-kv">
-							<span className="st-k">DIVISION HANDLING EFFICIENCY</span>
-							<span className="st-v st-badge st-badge-good">OPTIMAL</span>
-						</div>
-						<div className="st-kv">
-							<span className="st-k">SCRUTINY RESILIENCE</span>
-							<span className="st-v st-badge">STABLE</span>
-						</div>
-					</div>
-					<p className="st-muted">Historical data suggests a 12% return probability for similar complexity files.</p>
-				</Card>
-			</div>
-
-			<div>
-				<Card title="VETTING ACTION PANEL">
-					<textarea className="st-textarea" placeholder="Record official remarks..." rows={6} />
-					<div className="st-actions">
-						<button className="st-btn st-btn-primary">FORWARD FOR CONCURRENCE</button>
-						<button className="st-btn st-btn-danger">RETURN FOR REVISION</button>
-					</div>
-				</Card>
-
-				<Card title="QUALITATIVE HEALTH">
-					<ul className="st-tags">
-						<li className="st-tag st-tag-green">High urgency</li>
-						<li className="st-tag st-tag-green">Clear ROI</li>
-					</ul>
-				</Card>
-			</div>
-		</div>
 	);
 };
 
@@ -238,6 +155,27 @@ const AdministrativeVelocity: React.FC<{
 		</div>
 	);
 };
+
+const AvgDelayBoxes: React.FC<{ bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number } }> = ({ bucketDays }) => {
+	return (
+		<div>
+			<div className="st-velocity-pillars">
+				<div className="st-pillar">
+					<div className="st-pillar-title">EXECUTIVE DELAY</div>
+					<div className="st-pillar-value">{bucketDays?.divisionExec ?? 0} DAYS</div>
+				</div>
+				<div className="st-pillar">
+					<div className="st-pillar-title">FINANCE DELAY</div>
+					<div className="st-pillar-value">{bucketDays?.divisionFinance ?? 0} DAYS</div>
+				</div>
+				<div className="st-pillar">
+					<div className="st-pillar-title">HQ DELAY</div>
+					<div className="st-pillar-value">{bucketDays?.hqExec ?? 0} DAYS</div>
+				</div>
+			</div>
+		</div>
+	);
+};
 const Ingestion: React.FC<{ onFetch: (data: any) => void; loading: boolean; fetchedPreview?: string; error?: string }> = ({ onFetch, loading, fetchedPreview, error }) => {
 	const [fileName, setFileName] = useState<string>("");
 	return (
@@ -275,7 +213,6 @@ const Ingestion: React.FC<{ onFetch: (data: any) => void; loading: boolean; fetc
 
 const Vetting: React.FC = () => {
 	const [page, setPage] = useState<"dashboard" | "ingestion">("dashboard");
-	const [detailTab, setDetailTab] = useState<"scrutiny" | "velocity">("scrutiny");
 	const [loading, setLoading] = useState(false);
 	const [vettingData, setVettingData] = useState<any>(null);
 	const [error, setError] = useState<string | undefined>(undefined);
@@ -289,6 +226,13 @@ const Vetting: React.FC = () => {
 	const [qualitativeTags, setQualitativeTags] = useState<string[] | undefined>(undefined);
 	const [cycleDays, setCycleDays] = useState<number | undefined>(undefined);
 	const [bucketDays, setBucketDays] = useState<{ divisionExec?: number; divisionFinance?: number; hqExec?: number } | undefined>(undefined);
+	const avgVettingSumDays = useMemo(() => {
+		if (!bucketDays) return undefined;
+		const divisionExec = Number(bucketDays.divisionExec ?? 0);
+		const divisionFinance = Number(bucketDays.divisionFinance ?? 0);
+		const hqExec = Number(bucketDays.hqExec ?? 0);
+		return Math.max(0, Math.round(divisionExec + divisionFinance + hqExec));
+	}, [bucketDays]);
 	const velocityBucketOrder = ["DIVISION_EXECUTIVE", "DIVISION_FINANCE", "HQ_EXECUTIVE"] as const;
 	const worksForSelectedPlanHead = useMemo<WorkListItem[]>(() => {
 		const docs: any[] = vettingData?.vettingData?.docdata ?? [];
@@ -540,13 +484,11 @@ const Vetting: React.FC = () => {
 		<div className="scrutiny-root">
 			<header className="st-header">
 				<div className="st-header-left">
-					<div className="st-logo">🔎</div>
 					<div>
 						<div className="st-title">SCRUTINY TERMINAL</div>
 						<div className="st-subtitle">Vetting Terminal — HQ Finance Audit</div>
 					</div>
 				</div>
-				<div className="st-status">HQ NETWORK ACTIVE <span className="st-badge st-badge-dark">HQ-FA</span></div>
 			</header>
 
 			<nav className="st-nav">
@@ -557,7 +499,6 @@ const Vetting: React.FC = () => {
 			{page === "dashboard" && (
 				<>
 					<ControlHub
-						onAccessTrack={() => setDetailTab("scrutiny")}
 						planHeads={planHeads}
 						selectedPlanHead={selectedPlanHead}
 						onSelectPlanHead={(ph) => {
@@ -591,47 +532,22 @@ const Vetting: React.FC = () => {
 								}
 							})();
 						}}
-						analytics={analytics}
-						currentWorkName={currentWorkName}
+						analytics={{
+							...analytics,
+							avgDays: avgVettingSumDays !== undefined ? `${avgVettingSumDays} DAYS` : analytics.avgDays,
+						}}
+						bucketDays={bucketDays}
 					/>
 
-					<Card
-						title="REDEVELOPMENT OF YARD DRAINAGE SYSTEM - MUGHALSARAI"
-						right={
-							<div className="st-inline-metrics">
-								<MetricBadge label="COMPLIANCE" value="78%" />
-								<MetricBadge label="JUSTIFICATION" value="82%" />
-							</div>
-						}
-					>
-						<div className="st-inline-meta">
-							<div className="st-kv">
-								<span className="st-k">ASSET VALUATION</span>
-								<span className="st-v">{currency("18,50,00,000")}</span>
-							</div>
-							<div className="st-kv">
-								<span className="st-k">BUDGET ALLOCATION</span>
-								<span className="st-v">PH-11 (NEW LINES)</span>
-							</div>
-						</div>
-
+					<Card>
 						<div className="st-subtabs">
-							<button className={`st-subtab ${detailTab === "scrutiny" ? "active" : ""}`} onClick={() => setDetailTab("scrutiny")}>DETAILED SCRUTINY</button>
-							<button className={`st-subtab ${detailTab === "velocity" ? "active" : ""}`} onClick={() => setDetailTab("velocity")}>DELAY-DEVIATION</button>
+							<button className="st-subtab active" type="button">DELAY-DEVIATION</button>
 						</div>
-
-						{detailTab === "scrutiny" ? (
-							<DetailedScrutiny
-								summary={selectedPlanEntry?.summary ?? vettingData?.summary}
-								observationsData={selectedPlanEntry?.observations ?? vettingData?.observations}
-							/>
-						) : (
-							<AdministrativeVelocity
-								works={worksForSelectedPlanHead}
-								selectedPlanHead={selectedPlanHead}
-								onOpenDelayForWork={openDelayForWork}
-							/>
-						)}
+						<AdministrativeVelocity
+							works={worksForSelectedPlanHead}
+							selectedPlanHead={selectedPlanHead}
+							onOpenDelayForWork={openDelayForWork}
+						/>
 					</Card>
 				</>
 			)}
@@ -660,10 +576,6 @@ const Vetting: React.FC = () => {
 				/>
 			)}
 
-			<footer className="st-footer">
-				<small>This app was developed by another user. It may be inaccurate or unsafe.</small>
-				<a className="st-footer-link" href="#" onClick={(e) => e.preventDefault()}>Report legal issue</a>
-			</footer>
 		</div>
 	);
 };

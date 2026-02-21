@@ -6,8 +6,8 @@ import LoginPage from "../Pages/LoginPage";
 import PrivateRoute from "./PrivateRoute";
 import Finance from "../Pages/Finance";
 import DocumentUpload from "../Pages/DocumentUpload";
-import Vetting from "../Pages/Vetting";
 import VettingDelayPage from "../Pages/VettingDelayPage";
+import AIEnhancedDashboard from "../Pages/AIEnhancedDashboard";
 
 export const routes = createBrowserRouter([
   // {
@@ -28,7 +28,7 @@ export const routes = createBrowserRouter([
   },
   {
     path: "/vetting",
-    element: <Vetting />,
+    element: <AIEnhancedDashboard />,
   },
   {
     path: "/vetting/delay",
@@ -43,3 +43,4 @@ export const routes = createBrowserRouter([
   //   ),
   // },
 ]);
+

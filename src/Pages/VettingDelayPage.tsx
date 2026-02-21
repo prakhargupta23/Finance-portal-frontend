@@ -121,7 +121,7 @@ const VettingDelayPage: React.FC = () => {
 			id: "initiation",
 			title: "PROJECT INITIATION",
 			badge: "FIELD UNIT",
-			actioned: "Actioned by GM",
+			// actioned: "Actioned by GM",
 			rightLabel: "PHASE",
 			rightValue: "START",
 			active: false,
@@ -139,7 +139,7 @@ const VettingDelayPage: React.FC = () => {
 			id: "hq-executive",
 			title: "HQ EXECUTIVE SANCTION",
 			badge: "ZONAL HQ",
-			actioned: "Actioned by PC/E/CR",
+			// actioned: "Actioned by PC/E/CR",
 			rightLabel: "TIME TAKEN BY DIVISION FINANCE",
 			rightValue: `${delayView?.divisionFinance ?? 0} Days 0h`,
 			active: false,
@@ -148,7 +148,7 @@ const VettingDelayPage: React.FC = () => {
 			id: "hq-finance",
 			title: "HQ FINANCE SCRUTINY",
 			badge: "HQ FINANCE",
-			actioned: "Actioned by AD/FINANCE",
+			// actioned: "Actioned by AD/FINANCE",
 			rightLabel: "TIME TAKEN BY ZONAL EXECUTIVE",
 			rightValue: `${delayView?.hqExec ?? 0} Days 0h`,
 			active: true,
@@ -188,10 +188,6 @@ const VettingDelayPage: React.FC = () => {
 			<div className="st-dd-shell">
 				<div className="st-dd-top-card">
 					<div className="st-dd-top-left">
-						<div className="st-dd-minihead">
-							<span className="st-dd-pill">FILE STATUS: HQ, FINANCE</span>
-							<span className="st-dd-id">ID: PROP-HQ-2025-4421</span>
-						</div>
 						<div className="st-dd-main-title">{workTitle}</div>
 						<div className="st-dd-kv-row">
 							<div>
@@ -216,33 +212,12 @@ const VettingDelayPage: React.FC = () => {
 					</div>
 				</div>
 
-				<div className="st-dd-tabs-row">
-					<button type="button" className="st-dd-tab active">ADMINISTRATIVE VELOCITY</button>
-				</div>
-
 				<div className="st-dd-content-grid">
 					<div className="st-dd-track">
 						<div className="st-dd-track-head">
 							<div>
 								<div className="st-dd-track-title">ADMINISTRATIVE VELOCITY TRACK</div>
 								<div className="st-dd-track-sub">TOTAL CYCLE TIME: {(delayView?.totalCycleDays ?? 0)} DAYS 0H</div>
-							</div>
-							<div className="st-dd-status">
-								<span>STATUS</span>
-								<strong>HQ FINANCE</strong>
-							</div>
-						</div>
-
-						<div className="st-dd-summary-grid">
-							<div className="st-dd-summary-card">
-								<div className="st-dd-summary-label">DIVISION EXECUTIVE HANDLING</div>
-								<div className="st-dd-summary-value">{delayView?.divisionExec ?? 0} Days 0h</div>
-								<div className="st-dd-summary-foot">PROCESSING TIME</div>
-							</div>
-							<div className="st-dd-summary-card">
-								<div className="st-dd-summary-label">HQ SCRUTINY VELOCITY</div>
-								<div className="st-dd-summary-value green">{delayView?.hqExec ?? 0} Days 0h</div>
-								<div className="st-dd-summary-foot">PROCESSING TIME</div>
 							</div>
 						</div>
 

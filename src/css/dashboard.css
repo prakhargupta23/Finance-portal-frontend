@@ -150,28 +150,28 @@
 
 /* Delay-deviation page styling */
 .st-dd-page {
-  max-width: 1040px;
+  max-width: 1120px;
   color: #0f172a;
 }
 .st-dd-shell {
   display: grid;
-  gap: 14px;
+  gap: 18px;
 }
 .st-dd-top-card {
   border: 1px solid #d9dee8;
-  border-radius: 18px;
+  border-radius: 16px;
   background: #ffffff;
-  padding: 20px 26px;
+  padding: 22px 24px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  column-gap: 18px;
-  row-gap: 10px;
+  column-gap: 22px;
+  row-gap: 12px;
 }
 .st-dd-top-left {
   min-width: 0;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 .st-dd-minihead {
   display: flex;
@@ -194,50 +194,51 @@
   white-space: nowrap;
 }
 .st-dd-main-title {
-  font-size: clamp(24px, 3.1vw, 38px);
-  line-height: 1.14;
-  font-weight: 900;
-  max-width: 920px;
-  text-transform: uppercase;
+  /* font-size: clamp(30px, 3.2vw, 50px); */
+  /* line-height: 1.1; */
+  font-weight: 300;
+  max-width: 780px;
+  /* text-transform: uppercase; */
   letter-spacing: 0.1px;
 }
 .st-dd-kv-row {
   display: flex;
-  gap: 18px;
+  gap: 26px;
   align-items: flex-start;
   flex-wrap: wrap;
+  margin-top: 6px;
 }
 .st-dd-kv-row > div {
-  min-width: 200px;
+  min-width: 170px;
 }
 .st-dd-k {
-  font-size: 10px;
-  font-weight: 700;
+  /* font-size: 10px;
+  font-weight: 700; */
   color: #64748b;
 }
 .st-dd-v {
   margin-top: 2px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
   color: #0b3fb7;
 }
 .st-dd-metrics {
   display: grid;
-  grid-template-columns: repeat(2, minmax(132px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(138px, 1fr));
+  gap: 12px;
   justify-self: end;
   align-self: start;
 }
 .st-dd-metric {
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  border-radius: 12px;
   background: #f8fafc;
-  min-width: 132px;
-  padding: 10px 12px;
+  min-width: 138px;
+  padding: 12px 14px;
   text-align: center;
 }
 .st-dd-metric-val {
-  font-size: 34px;
+  font-size: 30px;
   line-height: 1;
   font-weight: 900;
   color: #1e40af;
@@ -246,12 +247,12 @@
   color: #15803d;
 }
 .st-dd-metric-lbl {
-  margin-top: 6px;
-  font-size: 11px;
-  font-weight: 700;
+  /* margin-top: 5px;
+  font-size: 10px;
+  font-weight: 700; */
   color: #64748b;
-  line-height: 1.2;
-  letter-spacing: 0.3px;
+  /* line-height: 1.2;
+  letter-spacing: 0.3px; */
 }
 .st-dd-tabs-row {
   display: inline-flex;
@@ -278,30 +279,31 @@
 }
 .st-dd-content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 270px;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
   align-items: start;
 }
 .st-dd-track {
   border: 1px solid #dbe3ef;
-  border-radius: 22px;
+  border-radius: 18px;
   background: #fff;
-  padding: 16px;
+  padding: 16px 16px 14px;
 }
 .st-dd-track-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 .st-dd-track-title {
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1.1;
   font-weight: 900;
-  font-style: italic;
+  /* font-style: italic; */
 }
 .st-dd-track-sub {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 10px;
   letter-spacing: 1px;
   color: #64748b;
@@ -357,17 +359,17 @@
   font-weight: 700;
 }
 .st-dd-timeline-wrap {
-  margin-top: 16px;
+  margin-top: 10px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   position: relative;
 }
 .st-dd-timeline-wrap::before {
   content: "";
   position: absolute;
   left: 8px;
-  top: 22px;
-  bottom: 22px;
+  top: 20px;
+  bottom: 20px;
   width: 2px;
   background: #60a5fa;
   border-radius: 999px;
@@ -375,7 +377,7 @@
 .st-dd-step {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
-  gap: 10px;
+  gap: 8px;
   align-items: start;
   position: relative;
   z-index: 1;
@@ -383,7 +385,7 @@
 .st-dd-step-dot {
   width: 16px;
   height: 16px;
-  margin-top: 12px;
+  margin-top: 10px;
   border-radius: 999px;
   border: 3px solid #bfdbfe;
   background: #2563eb;
@@ -394,9 +396,9 @@
 }
 .st-dd-step-card {
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  border-radius: 12px;
   background: #f8fafc;
-  padding: 11px 12px;
+  padding: 10px 12px;
 }
 .st-dd-step.active .st-dd-step-card {
   border-color: #c7d2fe;
@@ -409,7 +411,7 @@
   gap: 10px;
 }
 .st-dd-step-title {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.2px;
   text-transform: uppercase;
@@ -437,13 +439,13 @@
   font-weight: 800;
 }
 .st-dd-step-action {
-  margin-top: 4px;
+  margin-top: 3px;
   font-size: 10px;
   color: #64748b;
   font-weight: 700;
 }
 .st-dd-step-right-value {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
   color: #334155;
 }
@@ -453,9 +455,9 @@
   font-size: 10px;
 }
 .st-dd-performance {
-  margin-top: 14px;
+  margin-top: 12px;
   border: 1px solid #e2e8f0;
-  border-radius: 18px;
+  border-radius: 14px;
   background: #f8fafc;
   padding: 12px;
 }
@@ -487,9 +489,9 @@
 }
 .st-dd-side-card {
   border: 1px solid #dbe3ef;
-  border-radius: 18px;
+  border-radius: 16px;
   background: #fff;
-  padding: 14px;
+  padding: 14px 14px 12px;
   margin-bottom: 12px;
 }
 .st-dd-side-title {
@@ -506,8 +508,8 @@
 }
 .st-dd-side-actions .st-btn {
   width: 100%;
-  font-size: 10px;
-  padding: 9px 10px;
+  font-size: 11px;
+  padding: 10px 10px;
 }
 .st-dd-outline-btn {
   border-color: #fecaca;
@@ -521,7 +523,13 @@
 .st-dd-side-top-action {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 10px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.st-dd-side-top-action .st-btn {
+  margin-left: auto;
+  min-width: 170px;
+  padding: 10px 14px;
 }
 .st-dd-footer-action {
   display: flex;
@@ -541,6 +549,9 @@
   }
   .st-dd-content-grid {
     grid-template-columns: 1fr;
+  }
+  .st-dd-side-top-action .st-btn {
+    width: 100%;
   }
   .st-dd-summary-grid {
     grid-template-columns: 1fr;
