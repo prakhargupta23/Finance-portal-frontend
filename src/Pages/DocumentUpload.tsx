@@ -20,6 +20,7 @@ import {
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { uploadDocumenttoblob, getdata } from '../services/document.service';
+import '../css/Finance.css';
 
 
 const DocumentUpload = () => {
@@ -36,6 +37,7 @@ const DocumentUpload = () => {
         <Stack direction="row" alignItems="center" spacing={1.5}>
           <Stack direction="row" alignItems="center" spacing={0.75}>
             <Box
+              className="finance-status-dot"
               sx={{
                 width: '8px',
                 height: '8px',
@@ -43,19 +45,42 @@ const DocumentUpload = () => {
                 backgroundColor: '#28a745',
               }}
             />
-            <Typography variant="caption">STATUS ACTIVE</Typography>
+            <Typography variant="caption" className="finance-status-wrap">STATUS ACTIVE</Typography>
           </Stack>
         </Stack>
       </Box>
-      <Box sx={{ bgcolor: '#dfdede', padding: '24px 20px', maxWidth: '100%', margin: '0 auto' }}>
-        <Box sx={{ bgcolor: '#ffffff', padding: '24px 20px', maxWidth: '60%', margin: '0 auto' }}>
+      <Box sx={{ padding: '24px 20px', maxWidth: '100%', margin: '0 auto' }}>
+        <Box
+          sx={{
+            padding: '24px 20px',
+            maxWidth: '1100px',
+            margin: '0 auto',
+            borderRadius: '20px',
+            border: '1px solid #d6e3f5',
+            background: 'linear-gradient(180deg, #f7faff 0%, #f1f6ff 100%)',
+            boxShadow: '0 18px 34px rgba(20, 44, 83, 0.12)',
+            transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+            '&:hover': {
+              transform: 'translateY(-1px)',
+              boxShadow: '0 22px 40px rgba(20, 44, 83, 0.14)',
+            }
+          }}
+        >
         <Box className="finance-header">
           <Typography variant="h5" sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#343a40' }}>
             Document Management
           </Typography>
           <Typography className="subtitle">Upload documents and review submissions</Typography>
         </Box>
-        <Card className="finance-panel" sx={{ backgroundColor: '#fff', padding: '24px 28px' }}>
+        <Card
+          className="finance-panel"
+          sx={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #d6e3f5',
+            boxShadow: '0 14px 28px rgba(20, 44, 83, 0.12)',
+            padding: '24px 28px',
+          }}
+        >
           <CardContent sx={{ padding: 0 }}>
             <Tabs
               value={activeTab}
@@ -91,12 +116,26 @@ const UploadDocument = () => {
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
   const [activeView, setActiveView] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const documentTypeByDoc: { [key: string]: "ReceiptNote" | "TaxInvoice" | "GSTInvoice" | "ModificationAdvice" | "InspectionCertificate" | "PurchaseOrder" } = {
+    'DRM APP': 'GSTInvoice',
+    'D&G Letter': 'TaxInvoice',
+    'Estimate reference': 'ReceiptNote',
+    'Func distribution letter': 'ModificationAdvice',
+    'Top sheet': 'PurchaseOrder',
+  };
+  const apiPathByDoc: { [key: string]: string } = {
+    'D&G Letter': '/api/extract-GM-data',
+  };
 
   const uploadFile = async (doc: string, file: File) => {
     setUploading(prev => ({ ...prev, [doc]: true }));
     try {
+      const documentType = documentTypeByDoc[doc] || 'GSTInvoice';
+      const apiPath = apiPathByDoc[doc] || '/api/extract-finance-data';
       console.log("Uploading file for document:", doc, file);
-      const fetchdata = getdata(file, "GSTInvoice", 1);
+      console.log("Using document type:", documentType);
+      console.log("Using API path:", apiPath);
+      const fetchdata = await getdata(file, documentType, 1, apiPath);
       console.log("fetchdata", fetchdata);
       const url = await uploadDocumenttoblob(doc, file);
       setUploadedDocs(prev => ({ ...prev, [doc]: url }));
@@ -221,7 +260,7 @@ const UploadDocument = () => {
                   }}
                   className="doc-btn-primary"
                 >
-                  {uploading[doc] ? 'Uploading…' : selectedFiles[doc] ? 'Upload' : 'Choose File'}
+                  {uploading[doc] ? 'Uploading...' : selectedFiles[doc] ? 'Upload' : 'Choose File'}
                 </Button>
               </Stack>
             )}

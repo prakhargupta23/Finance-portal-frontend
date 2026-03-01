@@ -55,7 +55,12 @@ const convertFileToBase64 = (file: File): Promise<string> => {
   });
 };
 
-export const getdata = async (file: File, documentType: keyof typeof documentKeys, rowId: number) => {
+export const getdata = async (
+  file: File,
+  documentType: keyof typeof documentKeys,
+  rowId: number,
+  apiPath: string = "/api/extract-finance-data"
+) => {
   console.log("called");
 
   // Convert File to base64 (without header)
@@ -66,14 +71,20 @@ export const getdata = async (file: File, documentType: keyof typeof documentKey
     prompt: "Extract all data",
     fileBase64: cleanBase64,
     documentType: documentType,
-    rowId: "1",
+    rowId: String(rowId),
   }
   
-  console.log("Sending to API:", data);
+  console.log("Sending to API:", {
+    apiPath,
+    documentType: data.documentType,
+    rowId: data.rowId,
+    fileBase64Length: data.fileBase64?.length || 0,
+  });
   
     try {
-      const answer = await fetchWrapper.post(`${config.apiUrl}/api/extract-finance-data`, data);
+      const answer = await fetchWrapper.post(`${config.apiUrl}${apiPath}`, data);
       console.log("gpt answer", answer);
+      return answer;
     } catch (err) {
       console.error("Fetch error:", err);
       throw err;
