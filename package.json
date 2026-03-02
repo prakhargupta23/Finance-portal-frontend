@@ -46,6 +46,7 @@
     "browser-image-compression": "^2.0.2",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
+    "cross-env": "^10.1.0",
     "crypto-browserify": "^3.12.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
