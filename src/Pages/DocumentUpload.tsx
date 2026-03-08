@@ -93,7 +93,16 @@ const DocumentUpload = () => {
     setActiveTab(newValue);
   };
 
+  const clearSession = () => {
+    localStorage.removeItem("currentSNo");
+    setSNo(null);
+    setUploadedDocs({});
+    setSelectedFiles({});
+    setDocErrors({});
+  };
+
   const handleCreateDocument = async () => {
+    clearSession();
     try {
       const data = await fetchWrapper.post(`${config.apiUrl}/api/create-master`, {});
       if (data && data.s_no) {
@@ -103,14 +112,6 @@ const DocumentUpload = () => {
     } catch (error) {
       console.error("Master creation failed", error);
     }
-  };
-
-  const clearSession = () => {
-    localStorage.removeItem("currentSNo");
-    setSNo(null);
-    setUploadedDocs({});
-    setSelectedFiles({});
-    setDocErrors({});
   };
 
   const uploadFile = async (doc: string, file: File) => {
@@ -200,8 +201,7 @@ const DocumentUpload = () => {
                       {sNo && <Typography variant="body2" sx={{ fontWeight: 700, color: '#2c3e50', mt: 1 }}>S.No: {sNo}</Typography>}
                     </Box>
                     <Stack direction="row" spacing={2}>
-                      {sNo && <Button variant="outlined" color="error" onClick={clearSession} sx={{ textTransform: 'none' }}>Clear Session</Button>}
-                      <Button variant="contained" onClick={handleCreateDocument} disabled={!!sNo} sx={{ borderRadius: '8px', px: 3 }}>{sNo ? 'Document Initialized' : '+ Add New Document'}</Button>
+                      <Button variant="contained" onClick={handleCreateDocument} sx={{ borderRadius: '8px', px: 3 }}>+ Add New Document</Button>
                     </Stack>
                   </Box>
 
