@@ -26,7 +26,7 @@ function get(url: string) {
       ...authHeader(url),
     },
   };
-  
+
   return fetch(url, requestOptions)
     .then(response => {
       if (!response.ok) {
@@ -73,7 +73,7 @@ async function post(url: string, body: any) {
 
 async function postZip(url: string, body: any) {
   try {
-  } catch (error) {}
+  } catch (error) { }
   const requestOptions: RequestInit = {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeader(url) },
@@ -154,7 +154,7 @@ function handleResponse(response: Response) {
       // if ([401, 403].includes(response.status) && accountService.userValue) {
       //   accountService.logout();
       // }
-      const error = (data && data.message) || response.statusText;
+      const error = (data && (data.message || data.details || (data.dbWrite && data.dbWrite.error) || data.error)) || response.statusText;
 
       return Promise.reject(error);
     }
