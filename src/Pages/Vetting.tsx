@@ -98,9 +98,6 @@ const ControlHub: React.FC<{
 			<section>
 				<div className="st-header-row">
 					<h2 className="st-section-title">CONTROL HUB</h2>
-					<div className="st-header-actions">
-						<button className="st-btn st-btn-primary">+ AUDIT NEW PROPOSAL</button>
-					</div>
 				</div>
 
 				<div className="st-grid st-grid-2">
@@ -534,15 +531,14 @@ const Vetting: React.FC = () => {
 				<div className="st-header-left">
 					<div>
 						<div className="st-title">SCRUTINY TERMINAL</div>
-						<div className="st-subtitle">Vetting Terminal — HQ Finance Audit</div>
+						<div className="st-subtitle" style={{ marginBottom: '12px' }}>Vetting Terminal — HQ Finance Audit</div>
+						<div style={{ display: 'flex', gap: '8px' }}>
+							<button className={`st-tab ${page === "dashboard" ? "active" : ""}`} onClick={() => navigate("/")}>DASHBOARD</button>
+							<button className={`st-tab`} onClick={() => navigate("/Upload")}>INGESTION</button>
+						</div>
 					</div>
 				</div>
 			</header>
-
-			<nav className="st-nav">
-				<button className={`st-tab ${page === "dashboard" ? "active" : ""}`} onClick={() => setPage("dashboard")}>DASHBOARD</button>
-				<button className={`st-tab`} onClick={() => navigate("/Upload")}>INGESTION</button>
-			</nav>
 
 			{page === "dashboard" && (
 				<>
