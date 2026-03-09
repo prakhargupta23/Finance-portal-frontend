@@ -274,143 +274,126 @@ const VettingDelayPage: React.FC = () => {
 	}, [planHead, workname, sNo]);
 
 	return (
-		<div className="scrutiny-root st-dd-page">
-			<div className="st-dd-shell">
-				<div className="st-dd-top-card">
-					<div className="st-dd-top-left">
-						<div className="st-dd-main-title">{workTitle}</div>
-						<div className="st-dd-kv-row">
-							<div>
-								<div className="st-dd-k">SANCTIONED COST / DIV</div>
-								<div className="st-dd-v">
-									{delayView?.sanctionedCost || "--"}
-									<span style={{ fontSize: '12px', marginLeft: '8px', color: '#64748b' }}>
-										({delayView?.division || "HQ"})
-									</span>
-								</div>
-							</div>
-							<div>
-								<div className="st-dd-k">ALLOCATION</div>
-								<div className="st-dd-v">{delayView?.allocation || "N/A"}</div>
-							</div>
-							<div>
-								<div className="st-dd-k">PLAN HEAD</div>
-								<div className="st-dd-v">{formatPlanHeadDisplay(planHead) || "PH-XX"}</div>
-							</div>
-							<div>
-								<div className="st-dd-k">GM APPROVAL DATE</div>
-								<div className={`st-dd-v ${!delayView?.gmMatched ? 'st-error-text' : ''}`} style={{ fontSize: '16px' }}>
-									{delayView?.gmMatched ? (delayView.gmApprovalDate || "Date Missing") : "⚠️ GM DATE NOT MATCHED"}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div className="st-dd-metrics">
-					<div className="st-dd-metric">
-						<div className="st-dd-metric-val">78%</div>
-						<div className="st-dd-metric-lbl">COMPLIANCE</div>
-					</div>
-					<div className="st-dd-metric">
-						<div className="st-dd-metric-val st-dd-metric-green">82%</div>
-						<div className="st-dd-metric-lbl">JUSTIFICATION</div>
-					</div>
-				</div>
-			</div>
+		<div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '48px 24px', fontFamily: '"Inter", sans-serif' }}>
+			<style>{`
+				.st-dd-container { max-width: 1000px; margin: 0 auto; }
+				.st-dd-nav-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+				.st-back-pill { background: #fff; border: 1px solid #e2e8f0; padding: 10px 24px; border-radius: 999px; color: #475569; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+				.st-back-pill:hover { background: #f8fafc; color: #1e293b; border-color: #cbd5e1; transform: translateY(-1px); }
+				.st-top-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); margin-bottom: 24px; }
+				.st-project-headline { font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1.4; border-bottom: 2px solid #f8fafc; padding-bottom: 20px; margin-bottom: 24px; }
+				.st-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+				.st-stat-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+				.st-stat-value { font-size: 18px; font-weight: 700; color: #1e293b; }
+				.st-stat-value.hero { color: #2563eb; }
+				.st-track-shell { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 40px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04); }
+				.st-track-title-card { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f8fafc; padding-bottom: 24px; margin-bottom: 40px; }
+				.st-cycle-summary { background: #f0f9ff; border: 1px solid #e0f2fe; padding: 12px 24px; border-radius: 12px; text-align: right; }
+				.st-cycle-summary-label { font-size: 10px; font-weight: 800; color: #0369a1; text-transform: uppercase; margin-bottom: 4px; }
+				.st-cycle-summary-val { font-size: 24px; font-weight: 900; color: #075985; }
+				.st-step-row { position: relative; padding-left: 48px; margin-bottom: 40px; }
+				.st-step-row:last-child { margin-bottom: 0; }
+				.st-step-connector { position: absolute; left: 19px; top: 24px; bottom: -44px; width: 2px; background: #e2e8f0; }
+				.st-step-row:last-child .st-step-connector { display: none; }
+				.st-step-indicator { position: absolute; left: 12px; top: 4px; width: 16px; height: 16px; background: #2563eb; border: 4px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #2563eb; z-index: 2; }
+				.st-step-content { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 16px; padding: 24px; transition: transform 0.2s; }
+				.st-step-content:hover { border-color: #dbeafe; transform: scale(1.01); }
+				.st-step-tag { background: #fff; border: 1px solid #e2e8f0; color: #475569; padding: 4px 12px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+				.st-step-desc { font-size: 14px; font-weight: 500; color: #64748b; margin-top: 12px; }
+				.st-step-large-val { font-size: 20px; font-weight: 800; color: #0f172a; }
+			`}</style>
 
-			<div className="st-dd-content-grid">
-				<div className="st-dd-track">
-					<div className="st-dd-track-head">
+			<div className="st-dd-container">
+				<div className="st-dd-nav-row">
+					<button className="st-back-pill" onClick={() => navigate("/vetting")}>← Back to Vetting Dashboard</button>
+				</div>
+
+				<div className="st-top-card">
+					<div className="st-project-headline">{workTitle}</div>
+					<div className="st-stat-grid">
 						<div>
-							<div className="st-dd-track-title">ADMINISTRATIVE VELOCITY TRACK</div>
-							<div className="st-dd-track-sub">TOTAL CYCLE TIME: {(delayView?.totalCycleDays ?? 0)} DAYS 0H</div>
+							<div className="st-stat-label">Sanctioned Cost & Div</div>
+							<div className="st-stat-value">
+								{delayView?.sanctionedCost || "--"}
+								<span style={{ fontSize: '13px', color: '#94a3b8', marginLeft: '8px' }}>({delayView?.division || "HQ"})</span>
+							</div>
+						</div>
+						<div>
+							<div className="st-stat-label">Budget Allocation</div>
+							<div className="st-stat-value">{delayView?.allocation || "N/A"}</div>
+						</div>
+						<div>
+							<div className="st-stat-label">Plan Head</div>
+							<div className="st-stat-value hero">{formatPlanHeadDisplay(planHead) || "PH-XX"}</div>
+						</div>
+						<div>
+							<div className="st-stat-label">GM Review Status</div>
+							<div className={`st-stat-value ${!delayView?.gmMatched ? 'st-error-text' : ''}`}>
+								{delayView?.gmMatched ? (delayView.gmApprovalDate || "Verified") : "⚠️ GM DATE NOT MATCHED"}
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div className="st-track-shell">
+					<div className="st-track-title-card">
+						<div>
+							<div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a' }}>ADMINISTRATIVE VELOCITY TRACK</div>
+						</div>
+						<div className="st-cycle-summary">
+							<div className="st-cycle-summary-label">Total Cycle Time</div>
+							<div className="st-cycle-summary-val">{(delayView?.totalCycleDays ?? 0)} Days</div>
 						</div>
 					</div>
 
-					{loading && <div className="st-muted">Loading delay data...</div>}
-					{error && <div className="st-tag st-error-text">{error}</div>}
+					{loading && <div style={{ color: '#94a3b8', textAlign: 'center', padding: '60px 0' }}>Analyzing vetting cycles...</div>}
+					{error && <div style={{ color: '#b91c1c', background: '#fef2f2', padding: '16px', borderRadius: '12px', border: '1px solid #fecaca', fontWeight: 600 }}>{error}</div>}
 
 					{!loading && !error && delayView && (
-						<div className="st-dd-timeline-wrap">
+						<div style={{ marginTop: '20px' }}>
 							{timelineRows.map((row) => (
-								<div key={row.id} className={`st-dd-step ${row.active ? "active" : ""}`}>
-									<div className="st-dd-step-dot" aria-hidden />
-									<div className="st-dd-step-card">{row.id === "NWR-loop" && delayView?.nwrLoops?.length > 0 && (
-										<div className="st-nwr-compact">
-											{delayView.nwrLoops.map((loop, index) => (
-												<div key={index} className="st-nwr-compact-row">
-													<span className="st-nwr-index">L{index + 1}</span>
-													<span className="st-nwr-dates">
-														{new Date(loop.cepdDate).toLocaleDateString("en-GB")}
-														{" → "}
-														{new Date(loop.faDate).toLocaleDateString("en-GB")}
-													</span>
-													<span
-														className="st-nwr-delay"
-														style={{
-															color: loop.delayDays > 7 ? "#dc2626" : "#16a34a",
-															fontWeight: 600,
-														}}
-													>
-														{loop.delayDays} Days
-													</span>
-												</div>
-											))}
-										</div>
-									)}
-										<div className="st-dd-step-top">
-											<div className="st-dd-step-title">{row.title}</div>
-											<div className="st-dd-step-right-label">{row.rightLabel}</div>
-										</div>
-										<div className="st-dd-step-mid">
-											<div>
-												<span className="st-dd-step-badge">{row.badge}</span>
-												<div className="st-dd-step-action">{row.actioned}</div>
+								<div key={row.id} className="st-step-row">
+									<div className="st-step-connector" />
+									<div className="st-step-indicator" />
+									<div className="st-step-content">
+										{row.id === "NWR-loop" && delayView?.nwrLoops?.length > 0 && (
+											<div style={{ background: '#fff', border: '1px solid #edf2f7', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+												{delayView.nwrLoops.map((loop, index) => (
+													<div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: index < delayView.nwrLoops.length - 1 ? '12px' : 0 }}>
+														<span style={{ fontSize: '12px', fontWeight: 800, color: '#2563eb' }}>Cycle {index + 1}</span>
+														<span style={{ fontSize: '13px', color: '#475569', fontWeight: 500 }}>
+															{new Date(loop.cepdDate).toLocaleDateString("en-GB")} → {new Date(loop.faDate).toLocaleDateString("en-GB")}
+														</span>
+														<span style={{
+															fontSize: '13px',
+															fontWeight: 900,
+															color: loop.delayDays > 7 ? '#dc2626' : '#16a34a',
+															background: loop.delayDays > 7 ? '#fef2f2' : '#f0fdf4',
+															padding: '2px 10px',
+															borderRadius: '6px'
+														}}>{loop.delayDays} Days</span>
+													</div>
+												))}
 											</div>
-											<div className="st-dd-step-right-value">{row.rightValue}</div>
+										)}
+										<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+											<div style={{ flex: 1 }}>
+												<div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+													<div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>{row.title}</div>
+													<div className="st-step-tag">{row.badge}</div>
+												</div>
+												<div className="st-step-desc">{row.actioned}</div>
+											</div>
+											<div style={{ textAlign: 'right', minWidth: '140px' }}>
+												<div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: '6px' }}>{row.rightLabel}</div>
+												<div className="st-step-large-val">{row.rightValue}</div>
+											</div>
 										</div>
 									</div>
 								</div>
 							))}
 						</div>
 					)}
-
-					<div className="st-dd-performance">
-						<div className="st-dd-performance-title">PERFORMANCE ANALYTICS (PH-HEAD WEIGHTED)</div>
-						<div className="st-dd-performance-grid">
-							<div>
-								<div className="st-dd-performance-k">DIVISION HANDLING EFFICIENCY</div>
-								<div className="st-dd-performance-v green">OPTIMAL</div>
-							</div>
-							<div>
-								<div className="st-dd-performance-k">SCRUTINY RESILIENCE</div>
-								<div className="st-dd-performance-v">STABLE</div>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div>
-					<div className="st-dd-side-top-action">
-						<button className="st-btn" onClick={() => navigate("/vetting")}>Back to Vetting</button>
-					</div>
-
-					<div className="st-dd-side-card">
-						<div className="st-dd-side-title">VETTING ACTION PANEL</div>
-						<textarea className="st-textarea" placeholder="Record official remarks..." rows={4} />
-						<div className="st-dd-side-actions">
-							<button type="button" className="st-btn st-btn-primary">FORWARD FOR CONCURRENCE</button>
-							<button type="button" className="st-btn st-dd-outline-btn">RETURN FOR REVISION</button>
-						</div>
-					</div>
-
-					<div className="st-dd-side-card">
-						<div className="st-dd-side-title">QUALITATIVE HEALTH</div>
-						<ul className="st-tags st-dd-health">
-							<li className="st-tag st-tag-green">High urgency</li>
-							<li className="st-tag st-tag-green">Clear ROI</li>
-						</ul>
-					</div>
 				</div>
 			</div>
 		</div>

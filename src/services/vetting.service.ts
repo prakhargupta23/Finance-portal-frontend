@@ -21,10 +21,8 @@ async function getVettingData() {
   return fetchWrapper.get(`${config.apiUrl}/api/get-vetting-data`);
 }
 
-async function getTableData() {
-  // We use the same endpoint as create-master but with GET method
-  // which we recently configured to return joined table data
-  return fetchWrapper.get(`${config.apiUrl}/api/create-master`);
+async function getTableData(cursor = "", limit = 10) {
+  return fetchWrapper.get(`${config.apiUrl}/api/create-master?cursor=${cursor}&limit=${limit}`);
 }
 
 type DelayQuery = string | { planHead?: string; workname?: string; sNo?: string };

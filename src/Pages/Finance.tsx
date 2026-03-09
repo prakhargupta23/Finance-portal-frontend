@@ -69,14 +69,14 @@ export default function Finance() {
         timestamp: new Date(msg.timestamp)
       }));
       setMessages(messagesWithDates);
-      
+
       if (parsedMessages.length > 0) {
         const maxId = Math.max(...parsedMessages.map((msg: any) => msg.id));
         setNextId(maxId + 1);
       }
     }
   }, []);
-  
+
   useEffect(() => {
     if (messages.length > 0) {
       localStorage.setItem("financeMessages", JSON.stringify(messages));
@@ -87,13 +87,13 @@ export default function Finance() {
 
   const handleSubmit = () => {
     if (inputText.trim() === "") return;
-    
+
     const newMessage: Message = {
       id: nextId,
       text: inputText,
       timestamp: new Date(),
     };
-    
+
     setMessages(prev => [newMessage, ...prev]);
     setInputText("");
     setNextId(prev => prev + 1);
@@ -118,7 +118,24 @@ export default function Finance() {
     <Box className="finance-page finance-page--dashboard">
       <Box className="finance-top-bar">
         <span>Finance Portal - Dashboard</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Button
+            className="finance-nav-btn"
+            variant="contained"
+            size="small"
+            startIcon={<HistoryIcon />}
+            onClick={() => window.location.href = '/vetting'}
+            sx={{
+              textTransform: 'none',
+              borderRadius: '6px',
+              fontWeight: 600,
+              fontSize: '0.75rem',
+              bgcolor: '#2563eb',
+              '&:hover': { bgcolor: '#1d4ed8' }
+            }}
+          >
+            Go to Vetting
+          </Button>
           <span className="finance-status-wrap" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="finance-status-dot" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#28a745' }}></span>
             STATUS ACTIVE
@@ -146,373 +163,373 @@ export default function Finance() {
                   aria-label="left section tabs"
                   sx={{ "& .MuiTab-root": { minHeight: 52 }, "& .MuiTab-iconWrapper": { mr: 1 } }}
                 >
-                <Tab 
-                  icon={<ChatBubbleIcon />} 
-                  iconPosition="start" 
-                  label="Message Board" 
-                  id="left-tab-0"
-                  aria-controls="left-tabpanel-0"
-                />
-                <Tab 
-                  icon={<HistoryIcon />} 
-                  iconPosition="start" 
-                  label="AI History" 
-                  id="left-tab-1"
-                  aria-controls="left-tabpanel-1"
-                />
-              </Tabs>
-            </AppBar>
-
-            {/* Message Board Tab (Left Tab 0) */}
-            <TabPanel value={leftTabValue} index={0}>
-              <Box sx={{ 
-                height: "100%", 
-                display: "flex", 
-                flexDirection: "column",
-                overflow: "hidden"
-              }}>
-                <Box sx={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  mb: 2,
-                  flexShrink: 0,
-                  px: 2
-                }}>
-                  <FormatQuoteIcon sx={{ mr: 1, color: "#007bff" }} />
-                  <Typography variant="h6" component="h2" noWrap>
-                    Message History
-                  </Typography>
-                  <Chip
-                    className="finance-chip-messages"
-                    label={`${messages.length} messages`}
-                    size="small"
-                    sx={{ ml: "auto", flexShrink: 0 }}
+                  <Tab
+                    icon={<ChatBubbleIcon />}
+                    iconPosition="start"
+                    label="Message Board"
+                    id="left-tab-0"
+                    aria-controls="left-tabpanel-0"
                   />
-                </Box>
-                
-                <Divider sx={{ flexShrink: 0 }} />
-                
-                <Box sx={{ 
-                  flex: 1,
-                  overflow: "auto",
-                  p: 2,
-                  mt: 1
-                }}>
-                  {messages.length === 0 ? (
-                    <Box
-                      className="finance-empty-state"
-                      sx={{
-                        textAlign: "center",
-                        py: 6,
-                        height: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        px: 2,
-                      }}
-                    >
-                      <Box className="icon-wrap">
-                        <FormatQuoteIcon sx={{ fontSize: 40 }} />
-                      </Box>
-                      <Typography variant="body1" sx={{ fontWeight: 500, color: "#495057", mb: 0.5 }}>
-                        No messages yet
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: "#6c757d" }}>
-                        Start typing on the right to add your first message.
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Box sx={{ pb: 1 }}>
-                      {messages.map((message) => (
-                        <Card
-                          key={message.id}
-                          className="finance-message-card"
-                          variant="outlined"
-                          sx={{
-                            mb: 2,
-                            width: "100%",
-                            overflow: "visible",
-                            position: "relative",
-                            pl: 1.5,
-                          }}
-                        >
-                          <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-                            <Box sx={{ 
-                              display: "flex", 
-                              justifyContent: "space-between", 
-                              mb: 1,
-                              flexWrap: "wrap",
-                              gap: 1
-                            }}>
-                              <Typography variant="caption" sx={{ color: "#6c757d" }} noWrap>
-                                Message #{message.id}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: "#6c757d" }} noWrap>
-                                {formatTime(message.timestamp)}
-                              </Typography>
-                            </Box>
-                            <Typography 
-                              variant="body2" 
-                              sx={{ 
-                                whiteSpace: "pre-wrap",
-                                wordBreak: "break-word",
-                                overflowWrap: "break-word",
-                                maxHeight: "200px",
-                                overflow: "auto",
-                                mb: 1,
-                                pr: 1
-                              }}
-                            >
-                              {message.text}
-                            </Typography>
-                            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => handleDelete(message.id)}
-                                aria-label="delete message"
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </Box>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </Box>
-                  )}
-                </Box>
-              </Box>
-            </TabPanel>
+                  <Tab
+                    icon={<HistoryIcon />}
+                    iconPosition="start"
+                    label="AI History"
+                    id="left-tab-1"
+                    aria-controls="left-tabpanel-1"
+                  />
+                </Tabs>
+              </AppBar>
 
-            {/* AI History Tab (Left Tab 1) */}
-            <TabPanel value={leftTabValue} index={1}>
-              <Box sx={{ 
-                height: "100%", 
-                display: "flex", 
-                flexDirection: "column",
-                overflow: "hidden"
-              }}>
-                <Box sx={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  mb: 3,
-                  flexShrink: 0,
-                  px: 2
-                }}>
-                  <HistoryIcon sx={{ mr: 1, color: "#007bff" }} />
-                  <Typography variant="h6" component="h2" noWrap>
-                    AI Conversation History
-                  </Typography>
-                  <Chip className="finance-chip-coming" label="Coming Soon" size="small" sx={{ ml: "auto", flexShrink: 0 }} />
-                </Box>
-                
-                <Divider sx={{ flexShrink: 0 }} />
-                
-                <Box
-                  className="finance-empty-state"
-                  sx={{
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    px: 2,
-                    py: 2,
-                  }}
-                >
-                  <Box className="icon-wrap">
-                    <HistoryIcon sx={{ fontSize: 40 }} />
-                  </Box>
-                  <Typography variant="h6" gutterBottom align="center" sx={{ color: "#343a40", fontWeight: 600 }}>
-                    AI History Section
-                  </Typography>
-                  <Typography variant="body2" align="center" sx={{ maxWidth: "85%", mb: 2, color: "#6c757d" }}>
-                    This tab will display your previous AI conversations, queries, and analysis.
-                  </Typography>
-                  <Typography variant="caption" align="center" sx={{ color: "#adb5bd" }}>
-                    Configure AI integration to start seeing your history here.
-                  </Typography>
-                </Box>
-              </Box>
-            </TabPanel>
-          </Paper>
-        </Grid>
-
-        {/* RIGHT HALF - Two Tabs */}
-        <Grid item xs={12} md={6}>
-          <Paper className="finance-panel finance-panel--floating" elevation={0} sx={{ height: "72vh", display: "flex", flexDirection: "column", bgcolor: "#ffffff" }}>
-            <AppBar position="static" color="default" elevation={0} sx={{ bgcolor: "#fafafa", borderBottom: "1px solid", borderColor: "divider" }}>
-              <Tabs
-                className="finance-tabs"
-                value={rightTabValue}
-                onChange={(e, newValue) => setRightTabValue(newValue)}
-                aria-label="right section tabs"
-                sx={{ "& .MuiTab-root": { minHeight: 52 }, "& .MuiTab-iconWrapper": { mr: 1 } }}
-              >
-                <Tab 
-                  icon={<SendIcon />} 
-                  iconPosition="start" 
-                  label="Message Editor" 
-                  id="right-tab-0"
-                  aria-controls="right-tabpanel-0"
-                />
-                <Tab 
-                  icon={<DescriptionIcon />} 
-                  iconPosition="start" 
-                  label="Document View" 
-                  id="right-tab-1"
-                  aria-controls="right-tabpanel-1"
-                />
-              </Tabs>
-            </AppBar>
-
-            {/* Message Editor Tab (Right Tab 0) */}
-            <TabPanel value={rightTabValue} index={0}>
-              <Box sx={{ 
-                height: "100%", 
-                display: "flex", 
-                flexDirection: "column",
-                overflow: "hidden",
-                p: 2
-              }}>
-                <Box sx={{ 
-                  display: "flex", 
+              {/* Message Board Tab (Left Tab 0) */}
+              <TabPanel value={leftTabValue} index={0}>
+                <Box sx={{
+                  height: "100%",
+                  display: "flex",
                   flexDirection: "column",
-                  height: "100%"
+                  overflow: "hidden"
                 }}>
-                  <Typography 
-                    variant="h6" 
-                    component="h2" 
-                    sx={{ 
-                      display: "flex", 
-                      alignItems: "center",
-                      mb: 2
-                    }}
-                  >
-                    <SendIcon sx={{ mr: 1, color: "#007bff" }} />
-                    Compose New Message
-                  </Typography>
-                  
-                  <Box sx={{ 
-                    flex: 1,
+                  <Box sx={{
                     display: "flex",
-                    flexDirection: "column",
-                    minHeight: 0
+                    alignItems: "center",
+                    mb: 2,
+                    flexShrink: 0,
+                    px: 2
                   }}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                      placeholder="Type your message here… Use Shift+Enter for new lines, or Enter to submit."
-                      variant="outlined"
-                      sx={{
-                        flex: 1,
-                        "& .MuiOutlinedInput-root": {
-                          height: "100%",
-                          alignItems: "flex-start",
-                          borderRadius: 2,
-                          bgcolor: "#f8f9fa",
-                          "&:hover": { bgcolor: "#e9ecef" },
-                          "&.Mui-focused": { bgcolor: "#fff" },
-                        },
-                      }}
-                      inputProps={{ maxLength: 1000 }}
-                      InputProps={{
-                        sx: {
-                          height: "100%",
-                          "& textarea": { resize: "none" },
-                        },
-                      }}
+                    <FormatQuoteIcon sx={{ mr: 1, color: "#007bff" }} />
+                    <Typography variant="h6" component="h2" noWrap>
+                      Message History
+                    </Typography>
+                    <Chip
+                      className="finance-chip-messages"
+                      label={`${messages.length} messages`}
+                      size="small"
+                      sx={{ ml: "auto", flexShrink: 0 }}
                     />
                   </Box>
-                  
-                  <Box sx={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    gap: 1,
-                    mt: 2,
-                    pt: 2,
-                    borderTop: "1px solid",
-                    borderColor: "divider"
+
+                  <Divider sx={{ flexShrink: 0 }} />
+
+                  <Box sx={{
+                    flex: 1,
+                    overflow: "auto",
+                    p: 2,
+                    mt: 1
                   }}>
-                    <Typography variant="caption" sx={{ color: "#6c757d" }}>
-                      Character count: {inputText.length}/1000
-                    </Typography>
-                    
-                    <Button
-                      className="finance-submit-btn"
-                      variant="contained"
-                      endIcon={<SendIcon />}
-                      onClick={handleSubmit}
-                      disabled={inputText.trim() === ""}
-                      sx={{ px: 4 }}
-                    >
-                      Submit Message
-                    </Button>
+                    {messages.length === 0 ? (
+                      <Box
+                        className="finance-empty-state"
+                        sx={{
+                          textAlign: "center",
+                          py: 6,
+                          height: "100%",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          px: 2,
+                        }}
+                      >
+                        <Box className="icon-wrap">
+                          <FormatQuoteIcon sx={{ fontSize: 40 }} />
+                        </Box>
+                        <Typography variant="body1" sx={{ fontWeight: 500, color: "#495057", mb: 0.5 }}>
+                          No messages yet
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: "#6c757d" }}>
+                          Start typing on the right to add your first message.
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box sx={{ pb: 1 }}>
+                        {messages.map((message) => (
+                          <Card
+                            key={message.id}
+                            className="finance-message-card"
+                            variant="outlined"
+                            sx={{
+                              mb: 2,
+                              width: "100%",
+                              overflow: "visible",
+                              position: "relative",
+                              pl: 1.5,
+                            }}
+                          >
+                            <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
+                              <Box sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                mb: 1,
+                                flexWrap: "wrap",
+                                gap: 1
+                              }}>
+                                <Typography variant="caption" sx={{ color: "#6c757d" }} noWrap>
+                                  Message #{message.id}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: "#6c757d" }} noWrap>
+                                  {formatTime(message.timestamp)}
+                                </Typography>
+                              </Box>
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  whiteSpace: "pre-wrap",
+                                  wordBreak: "break-word",
+                                  overflowWrap: "break-word",
+                                  maxHeight: "200px",
+                                  overflow: "auto",
+                                  mb: 1,
+                                  pr: 1
+                                }}
+                              >
+                                {message.text}
+                              </Typography>
+                              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleDelete(message.id)}
+                                  aria-label="delete message"
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </Box>
+                    )}
                   </Box>
                 </Box>
-              </Box>
-            </TabPanel>
+              </TabPanel>
 
-            {/* Document View Tab (Right Tab 1) */}
-            <TabPanel value={rightTabValue} index={1}>
-              <Box sx={{ 
-                height: "100%", 
-                display: "flex", 
-                flexDirection: "column",
-                overflow: "hidden"
-              }}>
-                <Box sx={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  mb: 3,
-                  flexShrink: 0,
-                  px: 2
+              {/* AI History Tab (Left Tab 1) */}
+              <TabPanel value={leftTabValue} index={1}>
+                <Box sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden"
                 }}>
-                  <DescriptionIcon sx={{ mr: 1, color: "#007bff" }} />
-                  <Typography variant="h6" component="h2" noWrap>
-                    Document Viewer
-                  </Typography>
-                  <Chip className="finance-chip-coming" label="Empty" size="small" sx={{ ml: "auto", flexShrink: 0 }} />
+                  <Box sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    mb: 3,
+                    flexShrink: 0,
+                    px: 2
+                  }}>
+                    <HistoryIcon sx={{ mr: 1, color: "#007bff" }} />
+                    <Typography variant="h6" component="h2" noWrap>
+                      AI Conversation History
+                    </Typography>
+                    <Chip className="finance-chip-coming" label="Coming Soon" size="small" sx={{ ml: "auto", flexShrink: 0 }} />
+                  </Box>
+
+                  <Divider sx={{ flexShrink: 0 }} />
+
+                  <Box
+                    className="finance-empty-state"
+                    sx={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      px: 2,
+                      py: 2,
+                    }}
+                  >
+                    <Box className="icon-wrap">
+                      <HistoryIcon sx={{ fontSize: 40 }} />
+                    </Box>
+                    <Typography variant="h6" gutterBottom align="center" sx={{ color: "#343a40", fontWeight: 600 }}>
+                      AI History Section
+                    </Typography>
+                    <Typography variant="body2" align="center" sx={{ maxWidth: "85%", mb: 2, color: "#6c757d" }}>
+                      This tab will display your previous AI conversations, queries, and analysis.
+                    </Typography>
+                    <Typography variant="caption" align="center" sx={{ color: "#adb5bd" }}>
+                      Configure AI integration to start seeing your history here.
+                    </Typography>
+                  </Box>
                 </Box>
+              </TabPanel>
+            </Paper>
+          </Grid>
 
-                <Divider sx={{ flexShrink: 0 }} />
+          {/* RIGHT HALF - Two Tabs */}
+          <Grid item xs={12} md={6}>
+            <Paper className="finance-panel finance-panel--floating" elevation={0} sx={{ height: "72vh", display: "flex", flexDirection: "column", bgcolor: "#ffffff" }}>
+              <AppBar position="static" color="default" elevation={0} sx={{ bgcolor: "#fafafa", borderBottom: "1px solid", borderColor: "divider" }}>
+                <Tabs
+                  className="finance-tabs"
+                  value={rightTabValue}
+                  onChange={(e, newValue) => setRightTabValue(newValue)}
+                  aria-label="right section tabs"
+                  sx={{ "& .MuiTab-root": { minHeight: 52 }, "& .MuiTab-iconWrapper": { mr: 1 } }}
+                >
+                  <Tab
+                    icon={<SendIcon />}
+                    iconPosition="start"
+                    label="Message Editor"
+                    id="right-tab-0"
+                    aria-controls="right-tabpanel-0"
+                  />
+                  <Tab
+                    icon={<DescriptionIcon />}
+                    iconPosition="start"
+                    label="Document View"
+                    id="right-tab-1"
+                    aria-controls="right-tabpanel-1"
+                  />
+                </Tabs>
+              </AppBar>
 
-                <Box
-                  className="finance-empty-state"
-                  sx={{
-                    flex: 1,
+              {/* Message Editor Tab (Right Tab 0) */}
+              <TabPanel value={rightTabValue} index={0}>
+                <Box sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden",
+                  p: 2
+                }}>
+                  <Box sx={{
                     display: "flex",
                     flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    px: 2,
-                    py: 2,
-                  }}
-                >
-                  <Box className="icon-wrap">
-                    <DescriptionIcon sx={{ fontSize: 40 }} />
+                    height: "100%"
+                  }}>
+                    <Typography
+                      variant="h6"
+                      component="h2"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        mb: 2
+                      }}
+                    >
+                      <SendIcon sx={{ mr: 1, color: "#007bff" }} />
+                      Compose New Message
+                    </Typography>
+
+                    <Box sx={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      minHeight: 0
+                    }}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        placeholder="Type your message here… Use Shift+Enter for new lines, or Enter to submit."
+                        variant="outlined"
+                        sx={{
+                          flex: 1,
+                          "& .MuiOutlinedInput-root": {
+                            height: "100%",
+                            alignItems: "flex-start",
+                            borderRadius: 2,
+                            bgcolor: "#f8f9fa",
+                            "&:hover": { bgcolor: "#e9ecef" },
+                            "&.Mui-focused": { bgcolor: "#fff" },
+                          },
+                        }}
+                        inputProps={{ maxLength: 1000 }}
+                        InputProps={{
+                          sx: {
+                            height: "100%",
+                            "& textarea": { resize: "none" },
+                          },
+                        }}
+                      />
+                    </Box>
+
+                    <Box sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: 1,
+                      mt: 2,
+                      pt: 2,
+                      borderTop: "1px solid",
+                      borderColor: "divider"
+                    }}>
+                      <Typography variant="caption" sx={{ color: "#6c757d" }}>
+                        Character count: {inputText.length}/1000
+                      </Typography>
+
+                      <Button
+                        className="finance-submit-btn"
+                        variant="contained"
+                        endIcon={<SendIcon />}
+                        onClick={handleSubmit}
+                        disabled={inputText.trim() === ""}
+                        sx={{ px: 4 }}
+                      >
+                        Submit Message
+                      </Button>
+                    </Box>
                   </Box>
-                  <Typography variant="h6" gutterBottom align="center" sx={{ color: "#343a40", fontWeight: 600 }}>
-                    Document View Section
-                  </Typography>
-                  <Typography variant="body2" align="center" sx={{ maxWidth: "85%", mb: 2, color: "#6c757d" }}>
-                    This tab will display uploaded documents, PDFs, or other financial reports for analysis.
-                  </Typography>
-                  <Typography variant="caption" align="center" sx={{ color: "#adb5bd" }}>
-                    Upload documents to view them here.
-                  </Typography>
                 </Box>
-              </Box>
-            </TabPanel>
-          </Paper>
+              </TabPanel>
+
+              {/* Document View Tab (Right Tab 1) */}
+              <TabPanel value={rightTabValue} index={1}>
+                <Box sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden"
+                }}>
+                  <Box sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    mb: 3,
+                    flexShrink: 0,
+                    px: 2
+                  }}>
+                    <DescriptionIcon sx={{ mr: 1, color: "#007bff" }} />
+                    <Typography variant="h6" component="h2" noWrap>
+                      Document Viewer
+                    </Typography>
+                    <Chip className="finance-chip-coming" label="Empty" size="small" sx={{ ml: "auto", flexShrink: 0 }} />
+                  </Box>
+
+                  <Divider sx={{ flexShrink: 0 }} />
+
+                  <Box
+                    className="finance-empty-state"
+                    sx={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      px: 2,
+                      py: 2,
+                    }}
+                  >
+                    <Box className="icon-wrap">
+                      <DescriptionIcon sx={{ fontSize: 40 }} />
+                    </Box>
+                    <Typography variant="h6" gutterBottom align="center" sx={{ color: "#343a40", fontWeight: 600 }}>
+                      Document View Section
+                    </Typography>
+                    <Typography variant="body2" align="center" sx={{ maxWidth: "85%", mb: 2, color: "#6c757d" }}>
+                      This tab will display uploaded documents, PDFs, or other financial reports for analysis.
+                    </Typography>
+                    <Typography variant="caption" align="center" sx={{ color: "#adb5bd" }}>
+                      Upload documents to view them here.
+                    </Typography>
+                  </Box>
+                </Box>
+              </TabPanel>
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
 
         {/* Footer Stats */}
         <Box className="finance-footer">

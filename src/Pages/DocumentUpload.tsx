@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { vettingService } from '../services/vetting.service';
 
 
@@ -8,11 +8,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
-} from '@mui/material';
-
-import {
-
+  TableRow,
   Box,
   Button,
   Card,
@@ -21,18 +17,14 @@ import {
   Tab,
   Typography,
   Stack,
-  Modal,
-  IconButton,
   Paper,
   Snackbar,
-  Alert
+  Alert,
+  TablePagination
 } from '@mui/material';
-import {
-  CloudUpload as CloudUploadIcon,
-  Download as DownloadIcon,
-  Close as CloseIcon,
-  Visibility as VisibilityIcon,
-} from '@mui/icons-material';
+
+
+
 import { uploadDocumenttoblob, getdata } from '../services/document.service';
 import { fetchWrapper } from '../helpers/fetch-wrapper';
 import { config } from '../shared/constants/config';
@@ -93,7 +85,16 @@ const DocumentUpload = () => {
     setActiveTab(newValue);
   };
 
+  const clearSession = () => {
+    localStorage.removeItem("currentSNo");
+    setSNo(null);
+    setUploadedDocs({});
+    setSelectedFiles({});
+    setDocErrors({});
+  };
+
   const handleCreateDocument = async () => {
+    clearSession();
     try {
       const data = await fetchWrapper.post(`${config.apiUrl}/api/create-master`, {});
       if (data && data.s_no) {
@@ -103,14 +104,6 @@ const DocumentUpload = () => {
     } catch (error) {
       console.error("Master creation failed", error);
     }
-  };
-
-  const clearSession = () => {
-    localStorage.removeItem("currentSNo");
-    setSNo(null);
-    setUploadedDocs({});
-    setSelectedFiles({});
-    setDocErrors({});
   };
 
   const uploadFile = async (doc: string, file: File) => {
@@ -200,8 +193,7 @@ const DocumentUpload = () => {
                       {sNo && <Typography variant="body2" sx={{ fontWeight: 700, color: '#2c3e50', mt: 1 }}>S.No: {sNo}</Typography>}
                     </Box>
                     <Stack direction="row" spacing={2}>
-                      {sNo && <Button variant="outlined" color="error" onClick={clearSession} sx={{ textTransform: 'none' }}>Clear Session</Button>}
-                      <Button variant="contained" onClick={handleCreateDocument} disabled={!!sNo} sx={{ borderRadius: '8px', px: 3 }}>{sNo ? 'Document Initialized' : '+ Add New Document'}</Button>
+                      <Button variant="contained" onClick={handleCreateDocument} sx={{ borderRadius: '8px', px: 3 }}>+ Add New Document</Button>
                     </Stack>
                   </Box>
 
@@ -263,25 +255,55 @@ const DocumentUpload = () => {
 
 
 
+
+
 const Review = ({ onReplace }: { onReplace: (row: any) => void }) => {
   const [reviewData, setReviewData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  // Track cursors for each page: [index 0] is "" (start), [index 1] is nextCursor from page 0, etc.
+  const [cursors, setCursors] = useState<string[]>([""]);
+
+  const fetchData = useCallback(async (targetPage: number, currLimit: number) => {
+    setLoading(true);
+    try {
+      // Get the cursor for the target page from our history
+      const cursor = cursors[targetPage] || "";
+      const response = await vettingService.getTableData(cursor, currLimit);
+
+      setReviewData(response?.data || []);
+      setTotalCount(response?.total || 0);
+
+      // If we are moving forward, store the next cursor for the next potential page
+      if (response?.nextCursor && targetPage + 1 >= cursors.length) {
+        setCursors(prev => {
+          const newCursors = [...prev];
+          newCursors[targetPage + 1] = response.nextCursor;
+          return newCursors;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch review data", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [cursors]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await vettingService.getTableData();
-        setReviewData(data || []);
-      } catch (error) {
-        console.error("Failed to fetch review data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+    fetchData(page, rowsPerPage);
+  }, [page, rowsPerPage, fetchData]);
 
-  if (loading) return <Typography sx={{ p: 4, textAlign: 'center' }}>Loading review data...</Typography>;
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+    setCursors([""]); // Reset history when limit changes
+  };
 
   return (
     <Box>
@@ -299,7 +321,9 @@ const Review = ({ onReplace }: { onReplace: (row: any) => void }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {reviewData.map((row, index) => (
+            {loading ? (
+              <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}>Loading...</TableCell></TableRow>
+            ) : reviewData.map((row, index) => (
               <TableRow key={index} sx={{ '&:hover': { backgroundColor: '#fcfdff' } }}>
                 <TableCell sx={{ fontWeight: 600 }}>{row.s_no}</TableCell>
 
@@ -336,13 +360,22 @@ const Review = ({ onReplace }: { onReplace: (row: any) => void }) => {
                 })}
               </TableRow>
             ))}
-            {reviewData.length === 0 && (
+            {!loading && reviewData.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 4 }}>No records found.</TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          component="div"
+          count={totalCount}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </TableContainer>
     </Box>
   );
