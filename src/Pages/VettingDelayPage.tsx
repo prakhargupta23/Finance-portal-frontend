@@ -73,15 +73,18 @@ const formatPlanHeadDisplay = (value: string): string => {
 
 const pickGmApprovalDate = (payload: any, delayRoot: any) => {
 	const candidates = [
-		payload?.gmapprovaldate,
 		payload?.gmApprovalDate,
+		payload?.meta?.gmApprovalDate,
+		payload?.gmapprovaldate,
 		payload?.gm_approval_date,
-		payload?.vettingData?.gmapprovaldate,
 		payload?.vettingData?.gmApprovalDate,
-		payload?.vettingData?.docdata?.[0]?.gmapprovaldate,
+		payload?.vettingData?.meta?.gmApprovalDate,
+		payload?.vettingData?.gmapprovaldate,
 		payload?.vettingData?.docdata?.[0]?.gmApprovalDate,
-		delayRoot?.gmapprovaldate,
+		payload?.vettingData?.docdata?.[0]?.gmapprovaldate,
 		delayRoot?.gmApprovalDate,
+		delayRoot?.meta?.gmApprovalDate,
+		delayRoot?.gmapprovaldate,
 	];
 	for (const value of candidates) {
 		const formatted = formatDate(value);
@@ -151,7 +154,9 @@ const extractDelayView = (payload: any): DelayView => {
 	const nwrLoops = payload?.nwrLoops ?? delayRoot?.nwrLoops ?? [];
 	const nwrLoopCount = payload?.nwrLoopCount ?? delayRoot?.nwrLoopCount ?? nwrLoops.length;
 
+	// Robust date picking
 	const markers = payload?.markers ?? delayRoot?.markers ?? {};
+	const gmApprovalDateFormatted = markers.gmApprovalDateFormatted || formatDate(markers.gmApprovalAt) || gmApprovalDate;
 
 	return {
 		divisionExec,
@@ -168,7 +173,7 @@ const extractDelayView = (payload: any): DelayView => {
 		nwrLoopCount,
 		nwrLoops,
 		firstDesignationDate: markers.firstDesignationDate || formatDate(markers.firstDesignationAt),
-		gmApprovalDateFormatted: markers.gmApprovalDateFormatted || formatDate(markers.gmApprovalAt),
+		gmApprovalDateFormatted,
 		lastDesignationDate: markers.lastDesignationDate || formatDate(markers.lastDesignationAt),
 		srdfmLastDate: markers.srdfmLastDate || formatDate(markers.srdfmLastAt),
 		drmLastDate: markers.drmLastDate || formatDate(markers.drmLastAt),
@@ -192,7 +197,7 @@ const VettingDelayPage: React.FC = () => {
 	const timelineRows = [
 		{
 			id: "initiation",
-			title: "PROJECT INITIATION",
+			title: "Project Initiation",
 			badge: "FIELD UNIT",
 			actioned: delayView?.gmMatched ? "Actioned by GM" : undefined,
 			rightLabel: "PHASE",
@@ -212,7 +217,7 @@ const VettingDelayPage: React.FC = () => {
 		// actioned: delayView?.firstDesignationDate ? `Actioned by Sr.DFM/DNR on ${delayView.firstDesignationDate}` : "Actioned by Sr.DFM/DNR",
 		{
 			id: "hq-executive",
-			title: "HQ EXECUTIVE SANCTION",
+			title: "Hq Executive Sanction",
 			badge: "ZONAL HQ",
 			actioned: (delayView?.srdfmLastDate || delayView?.drmLastDate)
 				? `Sr.DFM: ${delayView.srdfmLastDate || "--"} | DRM: ${delayView.drmLastDate || "--"}`
@@ -312,7 +317,7 @@ const VettingDelayPage: React.FC = () => {
 					<div className="st-project-headline">{workTitle}</div>
 					<div className="st-stat-grid">
 						<div>
-							<div className="st-stat-label">Sanctioned Cost & Div</div>
+							<div className="st-stat-label">Sanctioned Cost & Div(crore)</div>
 							<div className="st-stat-value">
 								{delayView?.sanctionedCost || "--"}
 								<span style={{ fontSize: '13px', color: '#94a3b8', marginLeft: '8px' }}>({delayView?.division || "HQ"})</span>
