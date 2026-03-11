@@ -263,20 +263,48 @@ const Review = ({ onReplace }: { onReplace: (row: any) => void }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
-  // Track cursors for each page: [index 0] is "" (start), [index 1] is nextCursor from page 0, etc.
   const [cursors, setCursors] = useState<string[]>([""]);
+
+  // << SMART FILTERING START >>
+  const [phFilter, setPhFilter] = useState("");
+
+  const formatPlanHeadDisplay = (value: string): string => {
+    if (!value) return "";
+    let cleaned = value.toUpperCase().replace(/PLAN HEAD[:\s]*/g, "").replace(/HEAD[:\s]*/g, "").replace(/[^A-Z0-9-\s]/g, "").trim();
+    if (!cleaned || cleaned === "-" || cleaned === "NULL") return "";
+    const match = cleaned.match(/\d+/);
+    return match ? `PH-${match[0]}` : cleaned;
+  };
+
+  const filteredData = reviewData.filter((row) => {
+    const phQuery = phFilter.trim().toUpperCase();
+    if (!phQuery) return true;
+
+    const phRaw = (row.planhead || "").toUpperCase();
+    const phDisplay = formatPlanHeadDisplay(phRaw);
+
+    // Extract numbers: e.g. "17" from "PH-17" or "17-Computerisation"
+    const queryNum = phQuery.match(/\d+/)?.[0];
+    const targetNum = phRaw.match(/\d+/)?.[0];
+
+    const workRaw = (row.workname || "").toUpperCase();
+
+    return phRaw.includes(phQuery) ||
+      phDisplay.includes(phQuery) ||
+      (queryNum && targetNum && queryNum === targetNum) ||
+      (queryNum && workRaw.includes(queryNum));
+  });
+  // << SMART FILTERING END >>
 
   const fetchData = useCallback(async (targetPage: number, currLimit: number) => {
     setLoading(true);
     try {
-      // Get the cursor for the target page from our history
       const cursor = cursors[targetPage] || "";
       const response = await vettingService.getTableData(cursor, currLimit);
 
       setReviewData(response?.data || []);
       setTotalCount(response?.total || 0);
 
-      // If we are moving forward, store the next cursor for the next potential page
       if (response?.nextCursor && targetPage + 1 >= cursors.length) {
         setCursors(prev => {
           const newCursors = [...prev];
@@ -302,30 +330,53 @@ const Review = ({ onReplace }: { onReplace: (row: any) => void }) => {
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-    setCursors([""]); // Reset history when limit changes
+    setCursors([""]);
   };
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Uploaded Documents Summary</Typography>
-      <TableContainer component={Paper} sx={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderRadius: '12px' }}>
-        <Table>
+      <Stack direction="row" spacing={2} sx={{ mb: 3, alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>Uploaded Documents Summary</Typography>
+        <Stack direction="row" spacing={2}>
+          <input
+            placeholder="Search Plan Head (e.g. 17 or PH-17)"
+            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', width: '260px' }}
+            value={phFilter}
+            onChange={(e) => setPhFilter(e.target.value)}
+          />
+        </Stack>
+      </Stack>
+
+      <TableContainer component={Paper} sx={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderRadius: '12px', overflow: 'auto' }}>
+        <Table sx={{ minWidth: '1200px' }}>
           <TableHead sx={{ backgroundColor: '#f8f9fa' }}>
             <TableRow>
-              <TableCell><b>S.No</b></TableCell>
-              <TableCell><b>DRM APP</b></TableCell>
-              <TableCell><b>D&G Letter</b></TableCell>
-              <TableCell><b>Estimate</b></TableCell>
-              <TableCell><b>Func Dist</b></TableCell>
-              <TableCell><b>Top Sheet</b></TableCell>
+              <TableCell sx={{ minWidth: '110px' }}><b>S.No</b></TableCell>
+              <TableCell sx={{ minWidth: '100px' }}><b>Plan Head</b></TableCell>
+              <TableCell sx={{ minWidth: '220px' }}><b>Work Name</b></TableCell>
+              <TableCell sx={{ minWidth: '150px' }}><b>DRM APP</b></TableCell>
+              <TableCell sx={{ minWidth: '150px' }}><b>D&G Letter</b></TableCell>
+              <TableCell sx={{ minWidth: '150px' }}><b>Estimate</b></TableCell>
+              <TableCell sx={{ minWidth: '150px' }}><b>Func Dist</b></TableCell>
+              <TableCell sx={{ minWidth: '150px' }}><b>Top Sheet</b></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}>Loading...</TableCell></TableRow>
-            ) : reviewData.map((row, index) => (
+              <TableRow><TableCell colSpan={8} align="center" sx={{ py: 4 }}>Loading...</TableCell></TableRow>
+            ) : filteredData.map((row, index) => (
               <TableRow key={index} sx={{ '&:hover': { backgroundColor: '#fcfdff' } }}>
-                <TableCell sx={{ fontWeight: 600 }}>{row.s_no}</TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: '13px' }}>{row.s_no}</TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#0b5fff', fontSize: '12px' }}>
+                    {formatPlanHeadDisplay(row.planhead) || "--"}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="caption" sx={{ display: 'block', maxWidth: '200px', lineHeight: 1.4, color: '#4b5563', fontWeight: 500, whiteSpace: 'normal' }}>
+                    {row.workname?.substring(0, 100)}{row.workname?.length > 100 ? '...' : ''}
+                  </Typography>
+                </TableCell>
 
                 {['drm_app', 'dg_letter', 'estimate', 'func_distribution', 'top_sheet'].map((type) => {
                   const url = row[`${type}_file_url`];
@@ -333,13 +384,13 @@ const Review = ({ onReplace }: { onReplace: (row: any) => void }) => {
                   return (
                     <TableCell key={type}>
                       {isUploaded ? (
-                        <Stack direction="row" spacing={1}>
+                        <Stack direction="row" spacing={0.5}>
                           <Button
                             size="small"
                             variant="contained"
                             color="success"
                             onClick={() => window.open(url, '_blank')}
-                            sx={{ minWidth: '60px', textTransform: 'none' }}
+                            sx={{ minWidth: '45px', fontSize: '10px', textTransform: 'none', py: 0.5 }}
                           >
                             View
                           </Button>
@@ -347,22 +398,22 @@ const Review = ({ onReplace }: { onReplace: (row: any) => void }) => {
                             size="small"
                             variant="outlined"
                             onClick={() => onReplace(row)}
-                            sx={{ minWidth: '70px', textTransform: 'none' }}
+                            sx={{ minWidth: '55px', fontSize: '10px', textTransform: 'none', py: 0.5 }}
                           >
                             Replace
                           </Button>
                         </Stack>
                       ) : (
-                        <Typography variant="caption" color="text.secondary">Not Uploaded</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '10px' }}>Not Uploaded</Typography>
                       )}
                     </TableCell>
                   );
                 })}
               </TableRow>
             ))}
-            {!loading && reviewData.length === 0 && (
+            {!loading && filteredData.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>No records found.</TableCell>
+                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>No records found.</TableCell>
               </TableRow>
             )}
           </TableBody>
