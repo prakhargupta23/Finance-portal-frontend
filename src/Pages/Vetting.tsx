@@ -3,11 +3,6 @@ import "../css/dashboard.css";
 import { vettingService } from "../services/vetting.service";
 import { useNavigate } from "react-router-dom";
 
-type Observation = {
-	id: number;
-	text: string;
-};
-
 type TimelineItem = {
 	title: string;
 	actor: string;
@@ -22,15 +17,6 @@ type WorkListItem = {
 	planhead: string;
 	s_no: string;
 };
-
-const currency = (value: string) => `₹ ${value}`;
-
-const MetricBadge = ({ label, value }: { label: string; value: string }) => (
-	<div className="st-metric">
-		<div className="st-metric-value">{value}</div>
-		<div className="st-metric-label">{label}</div>
-	</div>
-);
 
 // << VISUAL REFINEMENT START >>
 // Purpose: Convert messy OCR strings into clean labels like "PH-29" by stripping junk prefixes.
@@ -111,11 +97,11 @@ const ControlHub: React.FC<{
 									<span className="st-v">{analytics.works} WORKS</span>
 								</div>
 								<div className="st-kv">
-									<span className="st-k">AVG. VETTING TIME</span>
+									<span className="st-k">TOTAL(AVG. VETTING DAYS)</span>
 									<span className="st-v">{analytics.avgDays}</span>
 								</div>
 								<div className="st-kv" style={{ marginTop: 8 }}>
-									<span className="st-k">Select Plan Head</span>
+									<span className="st-k">SELECT PLAN HEAD</span>
 									<span className="st-v">
 										<select
 											className="st-select"
@@ -137,7 +123,7 @@ const ControlHub: React.FC<{
 					<Card>
 						<div className="st-proposal">
 							<div className="st-prop-head">
-								<div className="st-prop-scope">HQ FINANCE</div>
+								<div className="st-prop-scope">AVG. VETTING DAYS</div>
 							</div>
 							<AvgDelayBoxes bucketDays={bucketDays} />
 						</div>
@@ -191,15 +177,15 @@ const AvgDelayBoxes: React.FC<{ bucketDays?: { divisionExec?: number; divisionFi
 		<div>
 			<div className="st-velocity-pillars">
 				<div className="st-pillar">
-					<div className="st-pillar-title">EXECUTIVE DELAY</div>
+					<div className="st-pillar-title">DIVISION EXECUTIVE</div>
 					<div className="st-pillar-value">{bucketDays?.divisionExec ?? 0} DAYS</div>
 				</div>
 				<div className="st-pillar">
-					<div className="st-pillar-title">FINANCE DELAY</div>
+					<div className="st-pillar-title">DIVISION FINANCE</div>
 					<div className="st-pillar-value">{bucketDays?.divisionFinance ?? 0} DAYS</div>
 				</div>
 				<div className="st-pillar">
-					<div className="st-pillar-title">HQ DELAY</div>
+					<div className="st-pillar-title">ZONAL EXECUTIVE</div>
 					<div className="st-pillar-value">{bucketDays?.hqExec ?? 0} DAYS</div>
 				</div>
 			</div>
@@ -242,7 +228,7 @@ const Ingestion: React.FC<{ onFetch: (data: any) => void; loading: boolean; fetc
 };
 
 const Vetting: React.FC = () => {
-	const [page, setPage] = useState<"dashboard" | "ingestion">("dashboard");
+	const [page] = useState<"dashboard" | "ingestion">("dashboard");
 	const [loading, setLoading] = useState(false);
 	const [vettingData, setVettingData] = useState<any>(null);
 	const [error, setError] = useState<string | undefined>(undefined);
@@ -251,10 +237,9 @@ const Vetting: React.FC = () => {
 	const [selectedPlanHead, setSelectedPlanHead] = useState<string>(localStorage.getItem("selectedPlanHead") || "PH-11 (NEW LINES)");
 	const [analytics, setAnalytics] = useState<{ works: number; avgDays: string }>({ works: 1, avgDays: "22.0 DAYS" });
 	const [currentWorkName, setCurrentWorkName] = useState<string | undefined>(undefined);
-	const [selectedPlanEntry, setSelectedPlanEntry] = useState<any>(undefined);
-	const [timelineData, setTimelineData] = useState<TimelineItem[] | undefined>(undefined);
-	const [qualitativeTags, setQualitativeTags] = useState<string[] | undefined>(undefined);
-	const [cycleDays, setCycleDays] = useState<number | undefined>(undefined);
+	const [, setTimelineData] = useState<TimelineItem[] | undefined>(undefined);
+	const [, setQualitativeTags] = useState<string[] | undefined>(undefined);
+	const [, setCycleDays] = useState<number | undefined>(undefined);
 	const [bucketDays, setBucketDays] = useState<{ divisionExec?: number; divisionFinance?: number; hqExec?: number } | undefined>(undefined);
 	const avgVettingSumDays = useMemo(() => {
 		if (!bucketDays) return undefined;
@@ -294,7 +279,7 @@ const Vetting: React.FC = () => {
 					b === "DIVISION_EXECUTIVE"
 						? "DIVISION EXECUTIVE HANDLING"
 						: b === "DIVISION_FINANCE"
-							? "DIVISION FINANCE"
+							? "DIVISION EXECUTIVE"
 							: "HQ SCRUTINY",
 				actor: b.replace("_", " "),
 				date: "",
@@ -400,7 +385,6 @@ const Vetting: React.FC = () => {
 	// Helper: derive metrics and timeline from the provided API shape
 	function deriveFromApi(raw: any, ph: string) {
 		const docs: any[] = raw?.vettingData?.docdata ?? [];
-		const flows: any[] = raw?.vettingData?.flowdata ?? [];
 		const delays: Record<string, { bucket: string; enteredAt: string; exitedAt: string; delayDays: number }[]> =
 			raw?.vettingData?.delayData ?? {};
 
@@ -450,7 +434,7 @@ const Vetting: React.FC = () => {
 			b === "DIVISION_EXECUTIVE"
 				? "DIVISION EXECUTIVE HANDLING"
 				: b === "DIVISION_FINANCE"
-					? "DIVISION FINANCE"
+					? "DIVISION EXECUTIVE"
 					: b === "HQ_EXECUTIVE"
 						? "HQ SCRUTINY"
 						: b;
@@ -478,6 +462,8 @@ const Vetting: React.FC = () => {
 		};
 	}
 
+	// This effect is intended to run only once on mount to initialize dashboard data.
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect(() => {
 		(async () => {
 			try {
@@ -489,10 +475,10 @@ const Vetting: React.FC = () => {
 						(data?.vettingData?.docdata || []).map((x: any) => String(x.planhead)).filter(Boolean)
 					)
 				);
-				setPlanHeads(phs.length ? phs : planHeads);
+				setPlanHeads((prev) => (phs.length ? phs : prev));
 
 				const savedPH = localStorage.getItem("selectedPlanHead");
-				const chosen = (savedPH && phs.includes(savedPH)) ? savedPH : (phs.length ? phs[0] : selectedPlanHead);
+				const chosen = (savedPH && phs.includes(savedPH)) ? savedPH : (phs.length ? phs[0] : "PH-11 (NEW LINES)");
 
 				setSelectedPlanHead(chosen);
 				const derived = deriveFromApi(data, chosen);
