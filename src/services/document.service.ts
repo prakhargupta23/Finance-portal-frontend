@@ -6,12 +6,13 @@ const sasUrl = 'https://financenwr.blob.core.windows.net/financedocs?sp=racwdl&s
 
 export async function uploadDocumenttoblob(doc: string, file: File): Promise<string> {
   try {
-    const containerClient = new ContainerClient(sasUrl);
-    const extension = file.name.split('.').pop() || 'bin';
-    const blobName = `${doc.replace(/\s+/g, '_')}_${Date.now()}.${extension}`;
-    const blobClient = containerClient.getBlockBlobClient(blobName);
-    await blobClient.upload(file, file.size);
-    return blobClient.url;
+    // const containerClient = new ContainerClient(sasUrl);
+    // const extension = file.name.split('.').pop() || 'bin';
+    // const blobName = `${doc.replace(/\s+/g, '_')}_${Date.now()}.${extension}`;
+    // const blobClient = containerClient.getBlockBlobClient(blobName);
+    // await blobClient.upload(file, file.size);
+    // return blobClient.url;
+    return "";
   } catch (error) {
     console.error('Upload failed in service', error);
     throw error;
