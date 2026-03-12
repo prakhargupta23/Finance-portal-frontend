@@ -16,7 +16,7 @@ import {
   CloudUpload as CloudUploadIcon,
   Download as DownloadIcon,
   Close as CloseIcon,
-  CheckCircle as CheckCircleIcon,
+  // CheckCircle as CheckCircleIcon,
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { uploadDocumenttoblob, getdata } from '../services/document.service';
@@ -66,44 +66,44 @@ const DocumentUpload = () => {
             }
           }}
         >
-        <Box className="finance-header">
-          <Typography variant="h5" sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#343a40' }}>
-            Document Management
-          </Typography>
-          <Typography className="subtitle">Upload documents and review submissions</Typography>
-        </Box>
-        <Card
-          className="finance-panel"
-          sx={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #d6e3f5',
-            boxShadow: '0 14px 28px rgba(20, 44, 83, 0.12)',
-            padding: '24px 28px',
-          }}
-        >
-          <CardContent sx={{ padding: 0 }}>
-            <Tabs
-              value={activeTab}
-              onChange={handleTabChange}
-              sx={{
-                marginBottom: '28px',
-                '& .MuiTabs-indicator': {
-                  backgroundColor: '#007bff',
-                },
-              }}
-            >
-              <Tab label="Upload Document" />
-              <Tab label="Review" />
-            </Tabs>
-            <Box>
-              {activeTab === 0 && <UploadDocument />}
-              {activeTab === 1 && <Review />}
-            </Box>
-          </CardContent>
-        </Card>
-        <Box className="finance-footer">
-          <Typography variant="caption">Document Management Portal</Typography>
-        </Box>
+          <Box className="finance-header">
+            <Typography variant="h5" sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#343a40' }}>
+              Document Management
+            </Typography>
+            <Typography className="subtitle">Upload documents and review submissions</Typography>
+          </Box>
+          <Card
+            className="finance-panel"
+            sx={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #d6e3f5',
+              boxShadow: '0 14px 28px rgba(20, 44, 83, 0.12)',
+              padding: '24px 28px',
+            }}
+          >
+            <CardContent sx={{ padding: 0 }}>
+              <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                sx={{
+                  marginBottom: '28px',
+                  '& .MuiTabs-indicator': {
+                    backgroundColor: '#007bff',
+                  },
+                }}
+              >
+                <Tab label="Upload Document" />
+                <Tab label="Review" />
+              </Tabs>
+              <Box>
+                {activeTab === 0 && <UploadDocument />}
+                {activeTab === 1 && <Review />}
+              </Box>
+            </CardContent>
+          </Card>
+          <Box className="finance-footer">
+            <Typography variant="caption">Document Management Portal</Typography>
+          </Box>
         </Box>
       </Box>
     </Box>

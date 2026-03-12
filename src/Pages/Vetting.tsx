@@ -3,10 +3,10 @@ import "../css/dashboard.css";
 import { vettingService } from "../services/vetting.service";
 import { useNavigate } from "react-router-dom";
 
-type Observation = {
-	id: number;
-	text: string;
-};
+// type Observation = {
+// 	id: number;
+// 	text: string;
+// };
 
 type TimelineItem = {
 	title: string;
@@ -24,12 +24,12 @@ type WorkListItem = {
 
 const currency = (value: string) => `₹ ${value}`;
 
-const MetricBadge = ({ label, value }: { label: string; value: string }) => (
-	<div className="st-metric">
-		<div className="st-metric-value">{value}</div>
-		<div className="st-metric-label">{label}</div>
-	</div>
-);
+// const MetricBadge = ({ label, value }: { label: string; value: string }) => (
+// 	<div className="st-metric">
+// 		<div className="st-metric-value">{value}</div>
+// 		<div className="st-metric-label">{label}</div>
+// 	</div>
+// );
 
 const Card: React.FC<{ title?: string; right?: React.ReactNode; children?: React.ReactNode }> = ({
 	title,
@@ -60,62 +60,62 @@ const ControlHub: React.FC<{
 	analytics,
 	bucketDays,
 }) => {
-	const [pendingPH, setPendingPH] = useState<string>(selectedPlanHead);
-	useEffect(() => {
-		setPendingPH(selectedPlanHead);
-	}, [selectedPlanHead]);
-	return (
-		<section>
-			<div className="st-header-row">
-				<h2 className="st-section-title">CONTROL HUB</h2>
-				<div className="st-header-actions">
-					<button className="st-btn st-btn-primary">+ AUDIT NEW PROPOSAL</button>
+		const [pendingPH, setPendingPH] = useState<string>(selectedPlanHead);
+		useEffect(() => {
+			setPendingPH(selectedPlanHead);
+		}, [selectedPlanHead]);
+		return (
+			<section>
+				<div className="st-header-row">
+					<h2 className="st-section-title">CONTROL HUB</h2>
+					<div className="st-header-actions">
+						<button className="st-btn st-btn-primary">+ AUDIT NEW PROPOSAL</button>
+					</div>
 				</div>
-			</div>
 
-			<div className="st-grid st-grid-2">
-				<Card title="PLAN HEAD THROUGHPUT ANALYTICS">
-					<div className="st-analytics">
-						<div>
-							<div className="st-kv">
-								<span className="st-k">{selectedPlanHead || "PLAN HEAD"}</span>
-								<span className="st-v">{analytics.works} WORKS</span>
-							</div>
-							<div className="st-kv">
-								<span className="st-k">PIPELINE VALUE</span>
-								<span className="st-v">{currency(analytics.pipelineValue || "-")}</span>
-							</div>
-							<div className="st-kv">
-								<span className="st-k">AVG. VETTING TIME</span>
-								<span className="st-v">{analytics.avgDays}</span>
-							</div>
-							<div className="st-kv" style={{ marginTop: 8 }}>
-								<span className="st-k">Select Plan Head</span>
-								<span className="st-v">
-									<select className="st-select" value={pendingPH} onChange={(e) => setPendingPH(e.target.value)}>
-										{planHeads.map((ph) => (
-											<option key={ph} value={ph}>{ph}</option>
-										))}
-									</select>
-									<button className="st-btn" style={{ marginLeft: 8 }} onClick={() => onSelectPlanHead(pendingPH)}>Set</button>
-								</span>
+				<div className="st-grid st-grid-2">
+					<Card title="PLAN HEAD THROUGHPUT ANALYTICS">
+						<div className="st-analytics">
+							<div>
+								<div className="st-kv">
+									<span className="st-k">{selectedPlanHead || "PLAN HEAD"}</span>
+									<span className="st-v">{analytics.works} WORKS</span>
+								</div>
+								<div className="st-kv">
+									<span className="st-k">PIPELINE VALUE</span>
+									<span className="st-v">{currency(analytics.pipelineValue || "-")}</span>
+								</div>
+								<div className="st-kv">
+									<span className="st-k">AVG. VETTING TIME</span>
+									<span className="st-v">{analytics.avgDays}</span>
+								</div>
+								<div className="st-kv" style={{ marginTop: 8 }}>
+									<span className="st-k">Select Plan Head</span>
+									<span className="st-v">
+										<select className="st-select" value={pendingPH} onChange={(e) => setPendingPH(e.target.value)}>
+											{planHeads.map((ph) => (
+												<option key={ph} value={ph}>{ph}</option>
+											))}
+										</select>
+										<button className="st-btn" style={{ marginLeft: 8 }} onClick={() => onSelectPlanHead(pendingPH)}>Set</button>
+									</span>
+								</div>
 							</div>
 						</div>
-					</div>
-				</Card>
+					</Card>
 
-				<Card>
-					<div className="st-proposal">
-						<div className="st-prop-head">
-							<div className="st-prop-scope">HQ FINANCE</div>
+					<Card>
+						<div className="st-proposal">
+							<div className="st-prop-head">
+								<div className="st-prop-scope">HQ FINANCE</div>
+							</div>
+							<AvgDelayBoxes bucketDays={bucketDays} />
 						</div>
-						<AvgDelayBoxes bucketDays={bucketDays} />
-					</div>
-				</Card>
-			</div>
-		</section>
-	);
-};
+					</Card>
+				</div>
+			</section>
+		);
+	};
 
 const AdministrativeVelocity: React.FC<{
 	works: WorkListItem[];
@@ -221,13 +221,14 @@ const Vetting: React.FC = () => {
 	const [selectedPlanHead, setSelectedPlanHead] = useState<string>("PH-11 (NEW LINES)");
 	const [analytics, setAnalytics] = useState<{ works: number; pipelineValue: string; avgDays: string }>({ works: 1, pipelineValue: "18.5 Cr", avgDays: "22.0 DAYS" });
 	const [currentWorkName, setCurrentWorkName] = useState<string | undefined>(undefined);
-	const [selectedPlanEntry, setSelectedPlanEntry] = useState<any>(undefined);
+	// const [selectedPlanEntry, setSelectedPlanEntry] = useState<any>(undefined);
 	const [timelineData, setTimelineData] = useState<TimelineItem[] | undefined>(undefined);
 	const [qualitativeTags, setQualitativeTags] = useState<string[] | undefined>(undefined);
 	const [cycleDays, setCycleDays] = useState<number | undefined>(undefined);
 	const [bucketDays, setBucketDays] = useState<{ divisionExec?: number; divisionFinance?: number; hqExec?: number } | undefined>(undefined);
 	const avgVettingSumDays = useMemo(() => {
 		if (!bucketDays) return undefined;
+		console.log(timelineData, qualitativeTags, cycleDays)
 		const divisionExec = Number(bucketDays.divisionExec ?? 0);
 		const divisionFinance = Number(bucketDays.divisionFinance ?? 0);
 		const hqExec = Number(bucketDays.hqExec ?? 0);
@@ -263,8 +264,8 @@ const Vetting: React.FC = () => {
 					b === "DIVISION_EXECUTIVE"
 						? "DIVISION EXECUTIVE HANDLING"
 						: b === "DIVISION_FINANCE"
-						? "DIVISION FINANCE"
-						: "HQ SCRUTINY",
+							? "DIVISION FINANCE"
+							: "HQ SCRUTINY",
 				actor: b.replace("_", " "),
 				date: "",
 				summary: `Average delay ${avgByBucket[b]} days`,
@@ -358,7 +359,7 @@ const Vetting: React.FC = () => {
 	// Helper: derive metrics and timeline from the provided API shape
 	function deriveFromApi(raw: any, ph: string) {
 		const docs: any[] = raw?.vettingData?.docdata ?? [];
-		const flows: any[] = raw?.vettingData?.flowdata ?? [];
+		// const flows: any[] = raw?.vettingData?.flowdata ?? [];
 		const delays: Record<string, { bucket: string; enteredAt: string; exitedAt: string; delayDays: number }[]> =
 			raw?.vettingData?.delayData ?? {};
 
@@ -408,10 +409,10 @@ const Vetting: React.FC = () => {
 			b === "DIVISION_EXECUTIVE"
 				? "DIVISION EXECUTIVE HANDLING"
 				: b === "DIVISION_FINANCE"
-				? "DIVISION FINANCE"
-				: b === "HQ_EXECUTIVE"
-				? "HQ SCRUTINY"
-				: b;
+					? "DIVISION FINANCE"
+					: b === "HQ_EXECUTIVE"
+						? "HQ SCRUTINY"
+						: b;
 		const order = ["DIVISION_EXECUTIVE", "DIVISION_FINANCE", "HQ_EXECUTIVE"];
 		const tl: TimelineItem[] = order
 			.filter((b) => buckets.has(b))
@@ -569,8 +570,8 @@ const Vetting: React.FC = () => {
 					loading={loading}
 					fetchedPreview={
 						vettingData ?
-						(Array.isArray(vettingData) ? `${vettingData.length} items` : `${Object.keys(vettingData).length} fields`) :
-						undefined
+							(Array.isArray(vettingData) ? `${vettingData.length} items` : `${Object.keys(vettingData).length} fields`) :
+							undefined
 					}
 					error={error}
 				/>

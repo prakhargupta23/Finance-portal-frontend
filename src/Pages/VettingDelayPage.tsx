@@ -114,7 +114,7 @@ const VettingDelayPage: React.FC = () => {
 	const [delayView, setDelayView] = useState<DelayView | undefined>(undefined);
 
 	const workTitle = (workname || "PROJECT INITIATION").toUpperCase();
-	const gmDate = delayView?.gmApprovalDate ?? "--";
+	// const gmDate = delayView?.gmApprovalDate ?? "--";
 
 	const timelineRows = [
 		{
