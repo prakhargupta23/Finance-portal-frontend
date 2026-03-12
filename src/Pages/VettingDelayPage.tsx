@@ -207,8 +207,8 @@ const VettingDelayPage: React.FC = () => {
 		{
 			id: "division-finance",
 			// title: "ASSOCIATE FINANCE VETTING",
-			title: "Project Initiation on IRPSM",
-			badge: "DIVISION FINANCE",
+			title: "Project Initiation On IRPSM",
+			badge: "DIVISION EXECUTIVE",
 			actioned: delayView?.firstDesignationDate ? `First Designation ${delayView.firstDesignationDate}` : "Actioned by First Designation",
 			rightLabel: "TIME TAKEN BY DIVISION EXECUTIVE",
 			rightValue: `${delayView?.divisionExec ?? 0} Days 0h`,
@@ -217,11 +217,11 @@ const VettingDelayPage: React.FC = () => {
 		// actioned: delayView?.firstDesignationDate ? `Actioned by Sr.DFM/DNR on ${delayView.firstDesignationDate}` : "Actioned by Sr.DFM/DNR",
 		{
 			id: "hq-executive",
-			title: "Hq Executive Sanction",
-			badge: "ZONAL HQ",
+			title: "Finance Vetting",
+			badge: "DIVISION FINANCE",
 			actioned: (delayView?.srdfmLastDate || delayView?.drmLastDate)
 				? `Sr.DFM: ${delayView.srdfmLastDate || "--"} | DRM: ${delayView.drmLastDate || "--"}`
-				: "Actioned by PC/E/CR",
+				: "Actioned by Sr.DFM/DRM",
 			rightLabel: "TIME TAKEN BY DIVISION FINANCE",
 			rightValue: `${delayView?.divisionFinance ?? 0} Days 0h`,
 			active: false,
@@ -229,7 +229,7 @@ const VettingDelayPage: React.FC = () => {
 
 		{
 			id: "NWR-loop",
-			title: "HQ finance",
+			title: "HQ Finance",
 			badge: "NWR",
 			rightLabel: `${delayView?.nwrLoopCount ?? 0} Cycles`,
 			active: false,
@@ -237,8 +237,8 @@ const VettingDelayPage: React.FC = () => {
 		{
 			id: "hq-finance",
 			// title: "HQ FINANCE SCRUTINY",
-			title: "Process after Finance Concurrence",
-			badge: "HQ FINANCE",
+			title: "Process After Finance Concurrence",
+			badge: "ZONAL EXECUTIVE",
 			actioned: delayView?.lastDesignationDate ? `Last Designation ${delayView.lastDesignationDate}` : undefined,
 			rightLabel: "TIME TAKEN BY ZONAL EXECUTIVE",
 			rightValue: `${delayView?.hqExec ?? 0} Days 0h`,
@@ -287,7 +287,9 @@ const VettingDelayPage: React.FC = () => {
 				.st-back-pill:hover { background: #f8fafc; color: #1e293b; border-color: #cbd5e1; transform: translateY(-1px); }
 				.st-top-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); margin-bottom: 24px; }
 				.st-project-headline { font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1.4; border-bottom: 2px solid #f8fafc; padding-bottom: 20px; margin-bottom: 24px; }
-				.st-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+				.st-stat-grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 24px; align-items: start; }
+				.st-stat-grid > div:first-child { display: none; }
+				@media (max-width: 768px) { .st-stat-grid { grid-template-columns: 1fr; } }
 				.st-stat-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
 				.st-stat-value { font-size: 18px; font-weight: 700; color: #1e293b; }
 				.st-stat-value.hero { color: #2563eb; }
@@ -317,16 +319,16 @@ const VettingDelayPage: React.FC = () => {
 					<div className="st-project-headline">{workTitle}</div>
 					<div className="st-stat-grid">
 						<div>
-							<div className="st-stat-label">Sanctioned Cost & Div(crore)</div>
+							{/* <div className="st-stat-label">Sanctioned Cost & Div(crore)</div>
 							<div className="st-stat-value">
 								{delayView?.sanctionedCost || "--"}
 								<span style={{ fontSize: '13px', color: '#94a3b8', marginLeft: '8px' }}>({delayView?.division || "HQ"})</span>
-							</div>
+							</div> */}
 						</div>
-						<div>
+						{/* <div>
 							<div className="st-stat-label">Budget Allocation</div>
 							<div className="st-stat-value">{delayView?.allocation || "N/A"}</div>
-						</div>
+						</div> */}
 						<div>
 							<div className="st-stat-label">Plan Head</div>
 							<div className="st-stat-value hero">{formatPlanHeadDisplay(planHead) || "PH-XX"}</div>
