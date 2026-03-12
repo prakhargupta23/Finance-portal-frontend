@@ -1,5 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { vettingService } from '../services/vetting.service';
+
+
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Box,
   Button,
   Card,
@@ -8,10 +17,12 @@ import {
   Tab,
   Typography,
   Stack,
-  Modal,
-  IconButton,
   Paper,
+  Snackbar,
+  Alert,
+  TablePagination
 } from '@mui/material';
+
 import {
   CloudUpload as CloudUploadIcon,
   Download as DownloadIcon,
@@ -19,15 +30,135 @@ import {
   // CheckCircle as CheckCircleIcon,
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
-import { uploadDocumenttoblob, getdata } from '../services/document.service';
-import '../css/Finance.css';
 
+import { uploadDocumenttoblob, getdata } from '../services/document.service';
+import { fetchWrapper } from '../helpers/fetch-wrapper';
+import { config } from '../shared/constants/config';
+import '../css/Finance.css';
 
 const DocumentUpload = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const [sNo, setSNo] = useState<string | null>(localStorage.getItem("currentSNo"));
+  const [selectedFiles, setSelectedFiles] = useState<{ [key: string]: File | null }>({});
+  const [uploadedDocs, setUploadedDocs] = useState<{ [key: string]: string }>({});
+  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+  const [docErrors, setDocErrors] = useState<{ [key: string]: string | null }>({});
+  const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: 'error' | 'success' }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+
+  useEffect(() => {
+    const recoverSession = async () => {
+      let activeSNo = localStorage.getItem("currentSNo");
+      try {
+        let status;
+        if (activeSNo) {
+          status = await vettingService.getMasterStatus(activeSNo);
+        } else {
+          status = await vettingService.getLatestMasterStatus();
+          if (status && status.s_no) {
+            activeSNo = status.s_no;
+            localStorage.setItem("currentSNo", activeSNo as string);
+            setSNo(activeSNo);
+          }
+        }
+        if (status) {
+          const mapped: any = {};
+          if (status.drm_app_uploaded) mapped['DRM APP'] = status.drm_app_file_url;
+          if (status.dg_letter_uploaded) mapped['D&G Letter'] = status.dg_letter_file_url;
+          if (status.estimate_uploaded) mapped['Estimate reference'] = status.estimate_file_url;
+          if (status.func_distribution_uploaded) mapped['Func distribution letter'] = status.func_distribution_file_url;
+          if (status.top_sheet_uploaded) mapped['Top sheet'] = status.top_sheet_file_url;
+          setUploadedDocs(mapped);
+          if (activeSNo) setSNo(activeSNo);
+        }
+      } catch (error) {
+        console.error("Session recovery failed", error);
+      }
+    };
+    recoverSession();
+  }, []);
+
+  const showNotification = (message: string, severity: 'error' | 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+  };
+
+  const clearSession = () => {
+    localStorage.removeItem("currentSNo");
+    setSNo(null);
+    setUploadedDocs({});
+    setSelectedFiles({});
+    setDocErrors({});
+  };
+
+  const handleCreateDocument = async () => {
+    clearSession();
+    try {
+      const data = await fetchWrapper.post(`${config.apiUrl}/api/create-master`, {});
+      if (data && data.s_no) {
+        setSNo(data.s_no);
+        localStorage.setItem("currentSNo", data.s_no);
+      }
+    } catch (error) {
+      console.error("Master creation failed", error);
+    }
+  };
+
+  const uploadFile = async (doc: string, file: File) => {
+    if (!sNo) return;
+    setUploading(prev => ({ ...prev, [doc]: true }));
+    try {
+      const documentTypeByDoc: Record<string, string> = {
+        'DRM APP': 'FINANCE_DRM_APP',
+        'D&G Letter': 'GM_APPROVAL_LETTER',
+        'Estimate reference': 'ESTIMATE_DOC',
+        'Func distribution letter': 'FUNC_DISTRIBUTION',
+        'Top sheet': 'TOP_SHEET',
+      };
+
+      const apiPathByDoc: Record<string, string> = {
+        'D&G Letter': '/api/extract-GM-data'
+      };
+
+      const documentType = documentTypeByDoc[doc] || 'FINANCE_DOC';
+      const apiPath = apiPathByDoc[doc] || '/api/extract-finance-data';
+
+      setDocErrors(prev => ({ ...prev, [doc]: null }));
+      const url = await uploadDocumenttoblob(doc, file);
+      await getdata(file, documentType, sNo, file.name, url, apiPath, doc);
+
+      setUploadedDocs(prev => ({ ...prev, [doc]: url }));
+      setSelectedFiles(prev => ({ ...prev, [doc]: null }));
+      showNotification('Document uploaded successfully!', 'success');
+    } catch (error: any) {
+      setDocErrors(prev => ({ ...prev, [doc]: error.toString() }));
+      showNotification('Upload failed', 'error');
+    } finally {
+      setUploading(prev => ({ ...prev, [doc]: false }));
+    }
+  };
+
+  const documents = ['DRM APP', 'D&G Letter', 'Estimate reference', 'Func distribution letter', 'Top sheet'];
+
+  const handleReviewReplace = (row: any) => {
+    setSNo(row.s_no);
+    localStorage.setItem("currentSNo", row.s_no);
+    const mapped: any = {};
+    if (row.drm_app_uploaded) mapped['DRM APP'] = row.drm_app_file_url;
+    if (row.dg_letter_uploaded) mapped['D&G Letter'] = row.dg_letter_file_url;
+    if (row.estimate_uploaded) mapped['Estimate reference'] = row.estimate_file_url;
+    if (row.func_distribution_uploaded) mapped['Func distribution letter'] = row.func_distribution_file_url;
+    if (row.top_sheet_uploaded) mapped['Top sheet'] = row.top_sheet_file_url;
+    setUploadedDocs(mapped);
+    setActiveTab(0);
   };
 
   return (
@@ -36,338 +167,275 @@ const DocumentUpload = () => {
         <Typography variant="subtitle1">Document Management - Upload Portal</Typography>
         <Stack direction="row" alignItems="center" spacing={1.5}>
           <Stack direction="row" alignItems="center" spacing={0.75}>
-            <Box
-              className="finance-status-dot"
-              sx={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#28a745',
-              }}
-            />
+            <Box className="finance-status-dot" sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#28a745' }} />
             <Typography variant="caption" className="finance-status-wrap">STATUS ACTIVE</Typography>
           </Stack>
         </Stack>
       </Box>
+
       <Box sx={{ padding: '24px 20px', maxWidth: '100%', margin: '0 auto' }}>
-        <Box
-          sx={{
-            padding: '24px 20px',
-            maxWidth: '1100px',
-            margin: '0 auto',
-            borderRadius: '20px',
-            border: '1px solid #d6e3f5',
-            background: 'linear-gradient(180deg, #f7faff 0%, #f1f6ff 100%)',
-            boxShadow: '0 18px 34px rgba(20, 44, 83, 0.12)',
-            transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-            '&:hover': {
-              transform: 'translateY(-1px)',
-              boxShadow: '0 22px 40px rgba(20, 44, 83, 0.14)',
-            }
-          }}
-        >
+
+        <Box sx={{
+          padding: '24px 20px', maxWidth: '1100px', margin: '0 auto', borderRadius: '20px',
+          border: '1px solid #d6e3f5', background: 'linear-gradient(180deg, #f7faff 0%, #f1f6ff 100%)',
+          boxShadow: '0 18px 34px rgba(20, 44, 83, 0.12)'
+        }}>
           <Box className="finance-header">
-            <Typography variant="h5" sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#343a40' }}>
-              Document Management
-            </Typography>
+            <Typography variant="h5" sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#343a40' }}>Document Management</Typography>
             <Typography className="subtitle">Upload documents and review submissions</Typography>
           </Box>
-          <Card
-            className="finance-panel"
-            sx={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #d6e3f5',
-              boxShadow: '0 14px 28px rgba(20, 44, 83, 0.12)',
-              padding: '24px 28px',
-            }}
-          >
+
+          <Card sx={{ backgroundColor: '#ffffff', border: '1px solid #d6e3f5', boxShadow: '0 14px 28px rgba(20, 44, 83, 0.12)', padding: '24px 28px' }}>
             <CardContent sx={{ padding: 0 }}>
-              <Tabs
-                value={activeTab}
-                onChange={handleTabChange}
-                sx={{
-                  marginBottom: '28px',
-                  '& .MuiTabs-indicator': {
-                    backgroundColor: '#007bff',
-                  },
-                }}
-              >
+              <Tabs value={activeTab} onChange={handleTabChange} sx={{ marginBottom: '28px' }}>
                 <Tab label="Upload Document" />
                 <Tab label="Review" />
               </Tabs>
-              <Box>
-                {activeTab === 0 && <UploadDocument />}
-                {activeTab === 1 && <Review />}
-              </Box>
+
+              {activeTab === 0 ? (
+                <Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                    <Box>
+                      <Typography variant="h6" sx={{ color: '#343a40', fontWeight: 600 }}>Upload Documents</Typography>
+                      {sNo && <Typography variant="body2" sx={{ fontWeight: 700, color: '#2c3e50', mt: 1 }}>S.No: {sNo}</Typography>}
+                    </Box>
+                    <Stack direction="row" spacing={2}>
+                      <Button variant="contained" onClick={handleCreateDocument} sx={{ borderRadius: '8px', px: 3 }}>+ Add New Document</Button>
+                    </Stack>
+                  </Box>
+
+                  <Stack spacing={2}>
+                    {documents.map((doc, idx) => (
+                      <Box key={idx}>
+                        <Paper sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#f8f9fa', border: '1px solid #e9ecef' }}>
+                          <Typography sx={{ fontWeight: 600 }}>{doc}</Typography>
+                          <input type="file" ref={el => fileInputRefs.current[doc] = el} hidden onChange={e => { setSelectedFiles(prev => ({ ...prev, [doc]: e.target.files?.[0] || null })); setDocErrors(prev => ({ ...prev, [doc]: null })); }} />
+                          <Stack direction="row" spacing={1}>
+                            {uploadedDocs[doc] && !selectedFiles[doc] ? (
+                              <>
+                                <Button size="small" variant="contained" color="success" onClick={() => window.open(uploadedDocs[doc], '_blank')}>View</Button>
+                                <Button size="small" variant="outlined" onClick={() => fileInputRefs.current[doc]?.click()}>Replace</Button>
+                              </>
+                            ) : (
+                              <>
+                                {selectedFiles[doc] && <Typography variant="caption">{selectedFiles[doc]?.name}</Typography>}
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  disabled={!sNo || uploading[doc]}
+                                  onClick={() => {
+                                    const file = selectedFiles[doc];
+                                    if (file) {
+                                      uploadFile(doc, file);
+                                    } else {
+                                      fileInputRefs.current[doc]?.click();
+                                    }
+                                  }}
+                                >
+                                  {uploading[doc] ? '...' : selectedFiles[doc] ? 'Confirm' : 'Choose File'}
+                                </Button>
+                              </>
+                            )}
+                          </Stack>
+                        </Paper>
+                        {docErrors[doc] && <Typography color="error" variant="caption" sx={{ ml: 1 }}>{docErrors[doc]}</Typography>}
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              ) : (
+                <Review onReplace={handleReviewReplace} />
+              )}
             </CardContent>
           </Card>
-          <Box className="finance-footer">
-            <Typography variant="caption">Document Management Portal</Typography>
-          </Box>
+          <Box sx={{ mt: 3, textAlign: 'center' }}><Typography variant="caption" sx={{ color: '#6c757d' }}>Document Management Portal</Typography></Box>
+
         </Box>
       </Box>
+
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert severity={snackbar.severity} sx={{ borderRadius: '10px' }}>{snackbar.message}</Alert>
+      </Snackbar>
     </Box>
   );
 };
 
-const UploadDocument = () => {
-  const [selectedFiles, setSelectedFiles] = useState<{ [key: string]: File | null }>({});
-  const [uploadedDocs, setUploadedDocs] = useState<{ [key: string]: string }>({});
-  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
-  const [activeView, setActiveView] = useState<string | null>(null);
-  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-  const documentTypeByDoc: { [key: string]: "ReceiptNote" | "TaxInvoice" | "GSTInvoice" | "ModificationAdvice" | "InspectionCertificate" | "PurchaseOrder" } = {
-    'DRM APP': 'GSTInvoice',
-    'D&G Letter': 'TaxInvoice',
-    'Estimate reference': 'ReceiptNote',
-    'Func distribution letter': 'ModificationAdvice',
-    'Top sheet': 'PurchaseOrder',
-  };
-  const apiPathByDoc: { [key: string]: string } = {
-    'D&G Letter': '/api/extract-GM-data',
+
+
+
+
+
+const Review = ({ onReplace }: { onReplace: (row: any) => void }) => {
+  const [reviewData, setReviewData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [cursors, setCursors] = useState<string[]>([""]);
+
+  // << SMART FILTERING START >>
+  const [phFilter, setPhFilter] = useState("");
+
+  const formatPlanHeadDisplay = (value: string): string => {
+    if (!value) return "";
+    let cleaned = value.toUpperCase().replace(/PLAN HEAD[:\s]*/g, "").replace(/HEAD[:\s]*/g, "").replace(/[^A-Z0-9-\s]/g, "").trim();
+    if (!cleaned || cleaned === "-" || cleaned === "NULL") return "";
+    const match = cleaned.match(/\d+/);
+    return match ? `PH-${match[0]}` : cleaned;
   };
 
-  const uploadFile = async (doc: string, file: File) => {
-    setUploading(prev => ({ ...prev, [doc]: true }));
+  const filteredData = reviewData.filter((row) => {
+    const phQuery = phFilter.trim().toUpperCase();
+    if (!phQuery) return true;
+
+    const phRaw = (row.planhead || "").toUpperCase();
+    const phDisplay = formatPlanHeadDisplay(phRaw);
+
+    // Extract numbers: e.g. "17" from "PH-17" or "17-Computerisation"
+    const queryNum = phQuery.match(/\d+/)?.[0];
+    const targetNum = phRaw.match(/\d+/)?.[0];
+
+    const workRaw = (row.workname || "").toUpperCase();
+
+    return phRaw.includes(phQuery) ||
+      phDisplay.includes(phQuery) ||
+      (queryNum && targetNum && queryNum === targetNum) ||
+      (queryNum && workRaw.includes(queryNum));
+  });
+  // << SMART FILTERING END >>
+
+  const fetchData = useCallback(async (targetPage: number, currLimit: number) => {
+    setLoading(true);
     try {
-      const documentType = documentTypeByDoc[doc] || 'GSTInvoice';
-      const apiPath = apiPathByDoc[doc] || '/api/extract-finance-data';
-      console.log("Uploading file for document:", doc, file);
-      console.log("Using document type:", documentType);
-      console.log("Using API path:", apiPath);
-      const fetchdata = await getdata(file, documentType, 1, apiPath);
-      console.log("fetchdata", fetchdata);
-      const url = await uploadDocumenttoblob(doc, file);
-      setUploadedDocs(prev => ({ ...prev, [doc]: url }));
-      setSelectedFiles(prev => ({ ...prev, [doc]: null }));
+      const cursor = cursors[targetPage] || "";
+      const response = await vettingService.getTableData(cursor, currLimit);
+
+      setReviewData(response?.data || []);
+      setTotalCount(response?.total || 0);
+
+      if (response?.nextCursor && targetPage + 1 >= cursors.length) {
+        setCursors(prev => {
+          const newCursors = [...prev];
+          newCursors[targetPage + 1] = response.nextCursor;
+          return newCursors;
+        });
+      }
     } catch (error) {
-      console.error('Upload failed', error);
-      alert('Upload failed. Please try again.');
+      console.error("Failed to fetch review data", error);
     } finally {
-      setUploading(prev => ({ ...prev, [doc]: false }));
+      setLoading(false);
     }
+  }, [cursors]);
+
+  useEffect(() => {
+    fetchData(page, rowsPerPage);
+  }, [page, rowsPerPage, fetchData]);
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
   };
 
-  const documents = [
-    'DRM APP',
-    'D&G Letter',
-    'Estimate reference',
-    'Func distribution letter',
-    'Top sheet'
-  ];
-
-  const handleDownload = (url: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', '');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+    setCursors([""]);
   };
 
   return (
     <Box>
-      <Typography
-        variant="h6"
-        sx={{
-          textAlign: 'center',
-          marginBottom: '20px',
-          color: '#343a40',
-          fontWeight: 600,
-          fontSize: '1.1rem'
-        }}
-      >
-        Upload Documents
-      </Typography>
-      <Stack spacing={2}>
-        {documents.map((doc, index) => (
-          <Paper
-            key={index}
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '16px',
-              backgroundColor: '#f8f9fa',
-              border: '1px solid #e9ecef',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                transform: 'translateY(-2px)',
-              },
-            }}
-            className="doc-row"
-          >
-            <Typography sx={{ flex: 1, fontWeight: 600, color: '#343a40', fontSize: '0.95rem' }}>
-              {doc}
-            </Typography>
-            {uploadedDocs[doc] ? (
-              <Stack direction="row" spacing={1}>
-                <Button
-                  variant="contained"
-                  color="success"
-                  size="small"
-                  startIcon={<VisibilityIcon />}
-                  onClick={() => window.open(uploadedDocs[doc], '_blank')}
-                  className="doc-btn-primary"
-                >
-                  View
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  startIcon={<DownloadIcon />}
-                  onClick={() => handleDownload(uploadedDocs[doc])}
-                >
-                  Download
-                </Button>
-              </Stack>
-            ) : (
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <input
-                  type="file"
-                  ref={(el) => (fileInputRefs.current[doc] = el)}
-                  onChange={(e) => setSelectedFiles(prev => ({ ...prev, [doc]: e.target.files?.[0] || null }))}
-                  style={{ display: 'none' }}
-                />
-                {selectedFiles[doc] && (
-                  <Typography
-                    sx={{
-                      fontSize: '0.85rem',
-                      color: '#6c757d',
-                      maxWidth: '140px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {selectedFiles[doc]!.name}
-                  </Typography>
-                )}
-                <Button
-                  variant="contained"
-                  color={selectedFiles[doc] ? 'warning' : 'primary'}
-                  size="small"
-                  startIcon={selectedFiles[doc] ? <CloudUploadIcon /> : undefined}
-                  disabled={uploading[doc]}
-                  onClick={() => {
-                    if (selectedFiles[doc]) {
-                      uploadFile(doc, selectedFiles[doc]!);
-                    } else {
-                      fileInputRefs.current[doc]?.click();
-                    }
-                  }}
-                  className="doc-btn-primary"
-                >
-                  {uploading[doc] ? 'Uploading...' : selectedFiles[doc] ? 'Upload' : 'Choose File'}
-                </Button>
-              </Stack>
-            )}
-          </Paper>
-        ))}
-      </Stack>
-      <Modal open={!!activeView} onClose={() => setActiveView(null)}>
-        <Paper
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '90%',
-            maxWidth: '800px',
-            maxHeight: '90%',
-            backgroundColor: 'white',
-            padding: '20px',
-            borderRadius: '8px',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'auto',
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <Typography variant="h6" sx={{ color: '#343a40', fontWeight: 600 }}>
-              Viewing {activeView}
-            </Typography>
-            <IconButton
-              onClick={() => setActiveView(null)}
-              size="small"
-              sx={{ color: '#f44336' }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          <Box
-            component="iframe"
-            src={activeView ? uploadedDocs[activeView] : ''}
-            sx={{
-              width: '100%',
-              height: '500px',
-              border: 'none',
-              borderRadius: '4px',
-              flex: 1,
-              marginBottom: '16px',
-            }}
-            title={`Document: ${activeView}`}
+      <Stack direction="row" spacing={2} sx={{ mb: 3, alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>Uploaded Documents Summary</Typography>
+        <Stack direction="row" spacing={2}>
+          <input
+            placeholder="Search Plan Head (e.g. 17 or PH-17)"
+            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', width: '260px' }}
+            value={phFilter}
+            onChange={(e) => setPhFilter(e.target.value)}
           />
-          <Stack direction="row" spacing={2} justifyContent="center">
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<DownloadIcon />}
-              onClick={() => handleDownload(uploadedDocs[activeView!])}
-            >
-              Download
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<CloseIcon />}
-              onClick={() => setActiveView(null)}
-            >
-              Close
-            </Button>
-          </Stack>
-        </Paper>
-      </Modal>
-    </Box>
-  );
-};
+        </Stack>
+      </Stack>
 
-const Review = () => {
-  return (
-    <Box
-      sx={{
-        textAlign: 'center',
-        padding: '48px 24px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 2,
-      }}
-      className="finance-empty-state"
-    >
-      <Box
-        sx={{
-          width: '40px',
-          height: '40px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#6c757d',
-        }}
-      >
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor" />
-        </svg>
-      </Box>
-      <Typography variant="h6" sx={{ color: '#343a40', fontWeight: 600 }}>
-        Review Section
-      </Typography>
-      <Typography variant="body2" sx={{ color: '#6c757d' }}>
-        Review functionality will be implemented here.
-      </Typography>
+      <TableContainer component={Paper} sx={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderRadius: '12px', overflow: 'auto' }}>
+        <Table sx={{ minWidth: '1200px' }}>
+          <TableHead sx={{ backgroundColor: '#f8f9fa' }}>
+            <TableRow>
+              <TableCell sx={{ minWidth: '110px' }}><b>S.No</b></TableCell>
+              <TableCell sx={{ minWidth: '100px' }}><b>Plan Head</b></TableCell>
+              <TableCell sx={{ minWidth: '220px' }}><b>Work Name</b></TableCell>
+              <TableCell sx={{ minWidth: '150px' }}><b>DRM APP</b></TableCell>
+              <TableCell sx={{ minWidth: '150px' }}><b>D&G Letter</b></TableCell>
+              <TableCell sx={{ minWidth: '150px' }}><b>Estimate</b></TableCell>
+              <TableCell sx={{ minWidth: '150px' }}><b>Func Dist</b></TableCell>
+              <TableCell sx={{ minWidth: '150px' }}><b>Top Sheet</b></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={8} align="center" sx={{ py: 4 }}>Loading...</TableCell></TableRow>
+            ) : filteredData.map((row, index) => (
+              <TableRow key={index} sx={{ '&:hover': { backgroundColor: '#fcfdff' } }}>
+                <TableCell sx={{ fontWeight: 600, fontSize: '13px' }}>{row.s_no}</TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#0b5fff', fontSize: '12px' }}>
+                    {formatPlanHeadDisplay(row.planhead) || "--"}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="caption" sx={{ display: 'block', maxWidth: '200px', lineHeight: 1.4, color: '#4b5563', fontWeight: 500, whiteSpace: 'normal' }}>
+                    {row.workname?.substring(0, 100)}{row.workname?.length > 100 ? '...' : ''}
+                  </Typography>
+                </TableCell>
+
+                {['drm_app', 'dg_letter', 'estimate', 'func_distribution', 'top_sheet'].map((type) => {
+                  const url = row[`${type}_file_url`];
+                  const isUploaded = row[`${type}_uploaded`];
+                  return (
+                    <TableCell key={type}>
+                      {isUploaded ? (
+                        <Stack direction="row" spacing={0.5}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="success"
+                            onClick={() => window.open(url, '_blank')}
+                            sx={{ minWidth: '45px', fontSize: '10px', textTransform: 'none', py: 0.5 }}
+                          >
+                            View
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => onReplace(row)}
+                            sx={{ minWidth: '55px', fontSize: '10px', textTransform: 'none', py: 0.5 }}
+                          >
+                            Replace
+                          </Button>
+                        </Stack>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '10px' }}>Not Uploaded</Typography>
+                      )}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+            {!loading && filteredData.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>No records found.</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          component="div"
+          count={totalCount}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </TableContainer>
     </Box>
   );
 };

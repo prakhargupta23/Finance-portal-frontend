@@ -4,13 +4,28 @@ import { config } from "../shared/constants/config";
 export const vettingService = {
   getVettingData,
   getVettingDelay,
+  getTableData,
+  getMasterStatus,
+  getLatestMasterStatus,
 };
+
+async function getLatestMasterStatus() {
+  return fetchWrapper.get(`${config.apiUrl}/api/create-master?latest=true`);
+}
+
+async function getMasterStatus(sNo: string) {
+  return fetchWrapper.get(`${config.apiUrl}/api/create-master?sNo=${sNo}`);
+}
 
 async function getVettingData() {
   return fetchWrapper.get(`${config.apiUrl}/api/get-vetting-data`);
 }
 
-type DelayQuery = string | { planHead?: string; workname?: string };
+async function getTableData(cursor = "", limit = 10) {
+  return fetchWrapper.get(`${config.apiUrl}/api/create-master?cursor=${cursor}&limit=${limit}`);
+}
+
+type DelayQuery = string | { planHead?: string; workname?: string; sNo?: string };
 
 async function getVettingDelay(queryInput?: DelayQuery) {
   const params = new URLSearchParams();
@@ -20,6 +35,7 @@ async function getVettingDelay(queryInput?: DelayQuery) {
   } else if (queryInput) {
     if (queryInput.planHead) params.set("planHead", queryInput.planHead);
     if (queryInput.workname) params.set("workname", queryInput.workname);
+    if (queryInput.sNo) params.set("sNo", queryInput.sNo);
   }
 
   const query = params.toString();

@@ -154,7 +154,7 @@ function handleResponse(response: Response) {
       // if ([401, 403].includes(response.status) && accountService.userValue) {
       //   accountService.logout();
       // }
-      const error = (data && data.message) || response.statusText;
+      const error = (data && (data.message || data.details || (data.dbWrite && data.dbWrite.error) || data.error)) || response.statusText;
 
       return Promise.reject(error);
     }

@@ -1,89 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Vetting from "./Vetting";
 
-type CounterChipProps = {
-  label: string;
-  target: number;
-  accent: string;
-  reducedMotion: boolean;
-};
-
-const CounterChip: React.FC<CounterChipProps> = ({
-  label,
-  target,
-  accent,
-  reducedMotion,
-}) => {
-  const [value, setValue] = useState(reducedMotion ? target : 0);
-
-  useEffect(() => {
-    if (reducedMotion) {
-      setValue(target);
-      return;
-    }
-
-    let rafId = 0;
-    const durationMs = 1200;
-    const start = performance.now();
-
-    const tick = (now: number) => {
-      const progress = Math.min(1, (now - start) / durationMs);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setValue(Math.round(target * eased));
-      if (progress < 1) rafId = requestAnimationFrame(tick);
-    };
-
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  }, [target, reducedMotion]);
-
-  return (
-    <div
-      style={{
-        minWidth: 112,
-        padding: "10px 12px",
-        borderRadius: 12,
-        border: "1px solid rgba(148,163,184,0.35)",
-        background: "rgba(15,23,42,0.4)",
-        boxShadow: "0 10px 24px rgba(2,6,23,0.25)",
-        backdropFilter: "blur(8px)",
-      }}
-      aria-label={`${label} ${value}%`}
-    >
-      <div
-        style={{
-          fontSize: 28,
-          lineHeight: 1,
-          fontWeight: 800,
-          color: accent,
-          textAlign: "center",
-        }}
-      >
-        {value}%
-      </div>
-      <div
-        style={{
-          marginTop: 6,
-          fontSize: 10,
-          letterSpacing: 0.5,
-          color: "rgba(226,232,240,0.95)",
-          textAlign: "center",
-          fontWeight: 700,
-        }}
-      >
-        {label}
-      </div>
-    </div>
-  );
-};
-
 const AIEnhancedDashboard: React.FC = () => {
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [confidenceTarget, setConfidenceTarget] = useState(78);
-  const [anomalyTarget, setAnomalyTarget] = useState(82);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -92,21 +14,6 @@ const AIEnhancedDashboard: React.FC = () => {
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
-
-  useEffect(() => {
-    if (reducedMotion) return;
-    const id = window.setInterval(() => {
-      setConfidenceTarget((prev) => {
-        const next = prev + (Math.random() > 0.5 ? 1 : -1) * (1 + Math.floor(Math.random() * 2));
-        return Math.min(91, Math.max(70, next));
-      });
-      setAnomalyTarget((prev) => {
-        const next = prev + (Math.random() > 0.5 ? 1 : -1) * (1 + Math.floor(Math.random() * 2));
-        return Math.min(94, Math.max(74, next));
-      });
-    }, 2200);
-    return () => window.clearInterval(id);
-  }, [reducedMotion]);
 
   const transform = useMemo(() => {
     if (reducedMotion) return "none";
@@ -200,27 +107,7 @@ const AIEnhancedDashboard: React.FC = () => {
           zIndex: 1,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 10,
-            marginBottom: 12,
-          }}
-        >
-          <CounterChip
-            label="MODEL CONFIDENCE"
-            target={confidenceTarget}
-            accent="#60a5fa"
-            reducedMotion={reducedMotion}
-          />
-          <CounterChip
-            label="ANOMALY SCORE"
-            target={anomalyTarget}
-            accent="#a78bfa"
-            reducedMotion={reducedMotion}
-          />
-        </div>
+        <div style={{ marginBottom: 16 }} />
 
         <div
           ref={cardRef}

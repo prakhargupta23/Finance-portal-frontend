@@ -3,10 +3,6 @@ import "../css/dashboard.css";
 import { vettingService } from "../services/vetting.service";
 import { useNavigate } from "react-router-dom";
 
-// type Observation = {
-// 	id: number;
-// 	text: string;
-// };
 
 type TimelineItem = {
 	title: string;
@@ -20,16 +16,43 @@ type TimelineItem = {
 type WorkListItem = {
 	workname: string;
 	planhead: string;
+	s_no: string;
 };
 
-const currency = (value: string) => `₹ ${value}`;
+// << VISUAL REFINEMENT START >>
+// Purpose: Convert messy OCR strings into clean labels like "PH-29" by stripping junk prefixes.
+const formatPlanHeadDisplay = (value: string): string => {
+	if (!value) return "";
+	let cleaned = value.toUpperCase();
 
-// const MetricBadge = ({ label, value }: { label: string; value: string }) => (
-// 	<div className="st-metric">
-// 		<div className="st-metric-value">{value}</div>
-// 		<div className="st-metric-label">{label}</div>
-// 	</div>
-// );
+
+	// Strip common junk prefixes instead of failing
+	cleaned = cleaned.replace(/PLAN HEAD[:\s]*/g, "");
+	cleaned = cleaned.replace(/HEAD[:\s]*/g, "");
+	cleaned = cleaned.replace(/[^A-Z0-9-\s]/g, ""); // Remove crazy symbols
+	cleaned = cleaned.trim();
+
+	if (!cleaned || cleaned === "-" || cleaned === "NULL") return "";
+
+	// Try to find the numeric part for "PH-XX" formatting
+	const match = cleaned.match(/\d+/);
+	if (match) {
+		return `PH-${match[0]}`;
+	}
+
+	return cleaned;
+};
+
+// Helper: Strip common OCR junk from work names in the list view
+const normalizeWorkName = (name: string): string => {
+	if (!name) return "";
+	let cleaned = name.trim();
+	// Remove common OCR prefixes
+	cleaned = cleaned.replace(/^(WORK NAME\s*[:]\s*|View Full Screen\s*—\s*)+/gi, "");
+	return cleaned;
+};
+// << VISUAL REFINEMENT END >>
+
 
 const Card: React.FC<{ title?: string; right?: React.ReactNode; children?: React.ReactNode }> = ({
 	title,
@@ -51,7 +74,7 @@ const ControlHub: React.FC<{
 	planHeads: string[];
 	selectedPlanHead: string;
 	onSelectPlanHead: (ph: string) => void;
-	analytics: { works: number; pipelineValue: string; avgDays: string };
+	analytics: { works: number; avgDays: string };
 	bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number };
 }> = ({
 	planHeads,
@@ -60,17 +83,21 @@ const ControlHub: React.FC<{
 	analytics,
 	bucketDays,
 }) => {
+
 		const [pendingPH, setPendingPH] = useState<string>(selectedPlanHead);
 		useEffect(() => {
 			setPendingPH(selectedPlanHead);
 		}, [selectedPlanHead]);
+
 		return (
 			<section>
 				<div className="st-header-row">
 					<h2 className="st-section-title">CONTROL HUB</h2>
+
 					<div className="st-header-actions">
 						<button className="st-btn st-btn-primary">+ AUDIT NEW PROPOSAL</button>
 					</div>
+
 				</div>
 
 				<div className="st-grid st-grid-2">
@@ -78,6 +105,7 @@ const ControlHub: React.FC<{
 						<div className="st-analytics">
 							<div>
 								<div className="st-kv">
+
 									<span className="st-k">{selectedPlanHead || "PLAN HEAD"}</span>
 									<span className="st-v">{analytics.works} WORKS</span>
 								</div>
@@ -98,6 +126,31 @@ const ControlHub: React.FC<{
 											))}
 										</select>
 										<button className="st-btn" style={{ marginLeft: 8 }} onClick={() => onSelectPlanHead(pendingPH)}>Set</button>
+
+									<span className="st-k" style={{ fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
+										PLAN HEAD: <span style={{ color: '#0b5fff', marginLeft: '4px' }}>{formatPlanHeadDisplay(selectedPlanHead) || "--"}</span>
+									</span>
+									<span className="st-v">{analytics.works} WORKS</span>
+								</div>
+								<div className="st-kv">
+									<span className="st-k">TOTAL(AVG. VETTING DAYS)</span>
+									<span className="st-v">{analytics.avgDays}</span>
+								</div>
+								<div className="st-kv" style={{ marginTop: 8 }}>
+									<span className="st-k">SELECT PLAN HEAD</span>
+									<span className="st-v">
+										<select
+											className="st-select"
+											value={selectedPlanHead}
+											onChange={(e) => onSelectPlanHead(e.target.value)}
+										>
+											{planHeads
+												.filter(ph => formatPlanHeadDisplay(ph) !== "")
+												.map((ph) => (
+													<option key={ph} value={ph}>{formatPlanHeadDisplay(ph)}</option>
+												))}
+										</select>
+
 									</span>
 								</div>
 							</div>
@@ -107,7 +160,9 @@ const ControlHub: React.FC<{
 					<Card>
 						<div className="st-proposal">
 							<div className="st-prop-head">
-								<div className="st-prop-scope">HQ FINANCE</div>
+
+								<div className="st-prop-scope">AVG. VETTING DAYS</div>
+
 							</div>
 							<AvgDelayBoxes bucketDays={bucketDays} />
 						</div>
@@ -120,13 +175,13 @@ const ControlHub: React.FC<{
 const AdministrativeVelocity: React.FC<{
 	works: WorkListItem[];
 	selectedPlanHead: string;
-	onOpenDelayForWork: (workname: string, planHead: string) => void;
+	onOpenDelayForWork: (workname: string, planHead: string, sNo?: string) => void;
 }> = ({ works, selectedPlanHead, onOpenDelayForWork }) => {
 
 	return (
 		<div>
 			<div className="st-worklist-wrap">
-				<div className="st-worklist-title">WORKS IN {selectedPlanHead || "SELECTED PLAN HEAD"}</div>
+				<div className="st-worklist-title">WORKS IN {formatPlanHeadDisplay(selectedPlanHead) || "SELECTED PLAN HEAD"}</div>
 				{works.length ? (
 					<div className="st-worklist">
 						{works.map((work) => (
@@ -134,14 +189,14 @@ const AdministrativeVelocity: React.FC<{
 								<button
 									className="st-workname-link"
 									type="button"
-									onClick={() => onOpenDelayForWork(work.workname, work.planhead)}
+									onClick={() => onOpenDelayForWork(work.workname, work.planhead, work.s_no)}
 								>
-									{work.workname}
+									{normalizeWorkName(work.workname)}
 								</button>
 								<button
 									className="st-btn st-btn-primary st-worklist-btn"
 									type="button"
-									onClick={() => onOpenDelayForWork(work.workname, work.planhead)}
+									onClick={() => onOpenDelayForWork(work.workname, work.planhead, work.s_no)}
 								>
 									View Delay
 								</button>
@@ -161,15 +216,15 @@ const AvgDelayBoxes: React.FC<{ bucketDays?: { divisionExec?: number; divisionFi
 		<div>
 			<div className="st-velocity-pillars">
 				<div className="st-pillar">
-					<div className="st-pillar-title">EXECUTIVE DELAY</div>
+					<div className="st-pillar-title">DIVISION EXECUTIVE</div>
 					<div className="st-pillar-value">{bucketDays?.divisionExec ?? 0} DAYS</div>
 				</div>
 				<div className="st-pillar">
-					<div className="st-pillar-title">FINANCE DELAY</div>
+					<div className="st-pillar-title">DIVISION FINANCE</div>
 					<div className="st-pillar-value">{bucketDays?.divisionFinance ?? 0} DAYS</div>
 				</div>
 				<div className="st-pillar">
-					<div className="st-pillar-title">HQ DELAY</div>
+					<div className="st-pillar-title">ZONAL EXECUTIVE</div>
 					<div className="st-pillar-value">{bucketDays?.hqExec ?? 0} DAYS</div>
 				</div>
 			</div>
@@ -212,19 +267,21 @@ const Ingestion: React.FC<{ onFetch: (data: any) => void; loading: boolean; fetc
 };
 
 const Vetting: React.FC = () => {
-	const [page, setPage] = useState<"dashboard" | "ingestion">("dashboard");
+	const [page] = useState<"dashboard" | "ingestion">("dashboard");
 	const [loading, setLoading] = useState(false);
 	const [vettingData, setVettingData] = useState<any>(null);
 	const [error, setError] = useState<string | undefined>(undefined);
 	const navigate = useNavigate();
 	const [planHeads, setPlanHeads] = useState<string[]>(["PH-11 (NEW LINES)"]);
-	const [selectedPlanHead, setSelectedPlanHead] = useState<string>("PH-11 (NEW LINES)");
-	const [analytics, setAnalytics] = useState<{ works: number; pipelineValue: string; avgDays: string }>({ works: 1, pipelineValue: "18.5 Cr", avgDays: "22.0 DAYS" });
+	const [selectedPlanHead, setSelectedPlanHead] = useState<string>(localStorage.getItem("selectedPlanHead") || "PH-11 (NEW LINES)");
+	const [analytics, setAnalytics] = useState<{ works: number; avgDays: string }>({ works: 1, avgDays: "22.0 DAYS" });
 	const [currentWorkName, setCurrentWorkName] = useState<string | undefined>(undefined);
+
 	// const [selectedPlanEntry, setSelectedPlanEntry] = useState<any>(undefined);
 	const [timelineData, setTimelineData] = useState<TimelineItem[] | undefined>(undefined);
 	const [qualitativeTags, setQualitativeTags] = useState<string[] | undefined>(undefined);
 	const [cycleDays, setCycleDays] = useState<number | undefined>(undefined);
+
 	const [bucketDays, setBucketDays] = useState<{ divisionExec?: number; divisionFinance?: number; hqExec?: number } | undefined>(undefined);
 	const avgVettingSumDays = useMemo(() => {
 		if (!bucketDays) return undefined;
@@ -242,11 +299,12 @@ const Vetting: React.FC = () => {
 			.map((doc) => ({
 				workname: String(doc.workname || "").trim(),
 				planhead: String(doc.planhead || "").trim(),
+				s_no: doc.s_no
 			}))
 			.filter((work) => work.workname && work.planhead);
 	}, [selectedPlanHead, vettingData]);
-	const openDelayForWork = (workname: string, planHead: string) => {
-		const query = `work=${encodeURIComponent(workname)}&planHead=${encodeURIComponent(planHead)}`;
+	const openDelayForWork = (workname: string, planHead: string, sNo?: string) => {
+		const query = `work=${encodeURIComponent(workname)}&planHead=${encodeURIComponent(planHead)}${sNo ? `&sNo=${sNo}` : ""}`;
 		navigate(`/vetting/delay?${query}`);
 	};
 
@@ -264,7 +322,9 @@ const Vetting: React.FC = () => {
 					b === "DIVISION_EXECUTIVE"
 						? "DIVISION EXECUTIVE HANDLING"
 						: b === "DIVISION_FINANCE"
-							? "DIVISION FINANCE"
+
+							? "DIVISION EXECUTIVE"
+
 							: "HQ SCRUTINY",
 				actor: b.replace("_", " "),
 				date: "",
@@ -311,6 +371,17 @@ const Vetting: React.FC = () => {
 		}
 
 		if (typeof delayRoot === "object") {
+			// Shape: { executiveDelayDays, financeDelayDays, hqDelayDays } - Aggregated root level
+			if (delayRoot.executiveDelayDays !== undefined || delayRoot.financeDelayDays !== undefined) {
+				addDelay("DIVISION_EXECUTIVE", delayRoot.executiveDelayDays);
+				addDelay("DIVISION_FINANCE", delayRoot.financeDelayDays);
+				addDelay("HQ_EXECUTIVE", delayRoot.hqDelayDays);
+
+				// IMPORTANT: Backend already sent the average. 
+				// Pass divisor 1 to buildVelocityFromBucketSums to avoid double-dividing.
+				return buildVelocityFromBucketSums(sumByBucket, 1);
+			}
+
 			// Shape: { delays: { executiveDelayDays, financeDelayDays, hqDelayDays } }
 			if (delayRoot.delays && typeof delayRoot.delays === "object") {
 				addDelay("DIVISION_EXECUTIVE", delayRoot.delays.executiveDelayDays);
@@ -359,7 +430,7 @@ const Vetting: React.FC = () => {
 	// Helper: derive metrics and timeline from the provided API shape
 	function deriveFromApi(raw: any, ph: string) {
 		const docs: any[] = raw?.vettingData?.docdata ?? [];
-		// const flows: any[] = raw?.vettingData?.flowdata ?? [];
+
 		const delays: Record<string, { bucket: string; enteredAt: string; exitedAt: string; delayDays: number }[]> =
 			raw?.vettingData?.delayData ?? {};
 
@@ -367,7 +438,7 @@ const Vetting: React.FC = () => {
 		const uuids = filteredDocs.map((d) => d.uuid);
 
 		const works = filteredDocs.length || 0;
-		const pipelineValue = analytics.pipelineValue || "-";
+
 		const avgTotalDelay = (() => {
 			if (!uuids.length) return 0;
 			let total = 0;
@@ -409,7 +480,9 @@ const Vetting: React.FC = () => {
 			b === "DIVISION_EXECUTIVE"
 				? "DIVISION EXECUTIVE HANDLING"
 				: b === "DIVISION_FINANCE"
-					? "DIVISION FINANCE"
+
+					? "DIVISION EXECUTIVE"
+
 					: b === "HQ_EXECUTIVE"
 						? "HQ SCRUTINY"
 						: b;
@@ -424,7 +497,7 @@ const Vetting: React.FC = () => {
 			}));
 
 		return {
-			analytics: { works, pipelineValue, avgDays: `${avgTotalDelay} DAYS` },
+			analytics: { works, avgDays: `${avgTotalDelay} DAYS` },
 			workName: filteredDocs[0]?.workname,
 			timeline: tl,
 			tags: Array.from(buckets).length ? Array.from(buckets) : undefined,
@@ -437,6 +510,8 @@ const Vetting: React.FC = () => {
 		};
 	}
 
+	// This effect is intended to run only once on mount to initialize dashboard data.
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect(() => {
 		(async () => {
 			try {
@@ -448,8 +523,11 @@ const Vetting: React.FC = () => {
 						(data?.vettingData?.docdata || []).map((x: any) => String(x.planhead)).filter(Boolean)
 					)
 				);
-				setPlanHeads(phs.length ? phs : planHeads);
-				const chosen = phs.length ? phs[0] : selectedPlanHead;
+				setPlanHeads((prev) => (phs.length ? phs : prev));
+
+				const savedPH = localStorage.getItem("selectedPlanHead");
+				const chosen = (savedPH && phs.includes(savedPH)) ? savedPH : (phs.length ? phs[0] : "PH-11 (NEW LINES)");
+
 				setSelectedPlanHead(chosen);
 				const derived = deriveFromApi(data, chosen);
 				setAnalytics(derived.analytics);
@@ -487,15 +565,14 @@ const Vetting: React.FC = () => {
 				<div className="st-header-left">
 					<div>
 						<div className="st-title">SCRUTINY TERMINAL</div>
-						<div className="st-subtitle">Vetting Terminal — HQ Finance Audit</div>
+						<div className="st-subtitle" style={{ marginBottom: '12px' }}>Vetting Terminal — HQ Finance Audit</div>
+						<div style={{ display: 'flex', gap: '8px' }}>
+							<button className={`st-tab ${page === "dashboard" ? "active" : ""}`} onClick={() => navigate("/")}>DASHBOARD</button>
+							<button className={`st-tab`} onClick={() => navigate("/Upload")}>INGESTION</button>
+						</div>
 					</div>
 				</div>
 			</header>
-
-			<nav className="st-nav">
-				<button className={`st-tab ${page === "dashboard" ? "active" : ""}`} onClick={() => setPage("dashboard")}>DASHBOARD</button>
-				<button className={`st-tab`} onClick={() => navigate("/Upload")}>INGESTION</button>
-			</nav>
 
 			{page === "dashboard" && (
 				<>
@@ -504,6 +581,7 @@ const Vetting: React.FC = () => {
 						selectedPlanHead={selectedPlanHead}
 						onSelectPlanHead={(ph) => {
 							setSelectedPlanHead(ph);
+							localStorage.setItem("selectedPlanHead", ph);
 							if (vettingData) {
 								const derived = deriveFromApi(vettingData, ph);
 								setAnalytics(derived.analytics);
@@ -582,11 +660,3 @@ const Vetting: React.FC = () => {
 };
 
 export default Vetting;
-
-
-
-
-
-
-
-
