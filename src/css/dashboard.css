@@ -1,15 +1,30 @@
-/* Lightweight styles for Scrutiny Terminal (kept minimal) */
 .scrutiny-root {
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
+  scroll-behavior: smooth;
 }
 
-.st-header {
+.st-page-header {
+  margin-bottom: 20px;
+}
+
+.st-nav-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1010;
+  /* Increased to ensure it stays on top */
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 8px;
+  padding: 12px 0;
+  background: rgba(15, 23, 42, 0.95);
+  /* Increased opacity for more strength */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  /* Subtle but sturdy separator */
+  transition: background 0.3s ease, border 0.3s ease;
 }
 
 .st-header-left {
@@ -1205,4 +1220,190 @@
   font-weight: 700;
   margin-left: 8px;
   white-space: nowrap;
+}
+
+/* Premium Dashboard Enhancements */
+:root {
+  --st-primary: #0b5fff;
+  --st-primary-glow: rgba(11, 95, 255, 0.15);
+  --st-success: #10b981;
+  --st-warning: #f59e0b;
+  --st-danger: #ef4444;
+  --st-bg-glass: rgba(255, 255, 255, 0.7);
+  --st-border-glass: rgba(226, 232, 240, 0.8);
+}
+
+.st-premium-card {
+  position: relative;
+  overflow: hidden;
+  background: white;
+  border: 1px solid var(--st-border-glass);
+  border-radius: 20px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.st-premium-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.st-chart-container {
+  padding: 10px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.5) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+.st-tooltip-custom {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--st-border-glass);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', sans-serif;
+  min-width: 180px;
+}
+
+.st-tooltip-header {
+  font-weight: 800;
+  color: #1e293b;
+  font-size: 13px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 4px;
+}
+
+.st-tooltip-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  margin: 6px 0;
+}
+
+.st-tooltip-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.st-tooltip-value {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.st-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.st-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.st-skeleton {
+  background: #f6f7f8;
+  background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+  background-repeat: no-repeat;
+  background-size: 800px 100%;
+  animation: shimmer 1s linear infinite forwards;
+  border-radius: 8px;
+}
+
+.st-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+  width: fit-content;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  /* Stronger, deeper shadow */
+  position: sticky;
+  top: 64px;
+  /* Tightened gap below tabs */
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.st-filter-bar:hover {
+  background: white;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.st-filter-btn {
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.st-filter-btn:hover {
+  background: #f8fafc;
+  color: var(--st-primary);
+}
+
+.st-filter-btn.active {
+  background: var(--st-primary);
+  color: white;
+  box-shadow: 0 4px 12px var(--st-primary-glow);
+}
+
+.st-custom-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border-left: 1px solid #e2e8f0;
+  margin-left: 4px;
+}
+
+.st-date-field {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  color: #1e293b;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.st-date-field:focus {
+  border-color: var(--st-primary);
+}
+
+.st-filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-left: 10px;
+  margin-right: 4px;
+  text-transform: uppercase;
 }
