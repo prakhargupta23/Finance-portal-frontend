@@ -164,7 +164,7 @@ const ControlHub: React.FC<{
 	selectedPlanHead: string;
 	onSelectPlanHead: (ph: string) => void;
 	analytics: { works: number; avgDays: string };
-	bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number };
+	bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number, nwrLoopCycleDays?: number };
 }> = ({
 	planHeads,
 	selectedPlanHead,
@@ -265,7 +265,7 @@ const AdministrativeVelocity: React.FC<{
 	);
 };
 
-const AvgDelayBoxes: React.FC<{ bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number } }> = ({ bucketDays }) => {
+const AvgDelayBoxes: React.FC<{ bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number, nwrLoopCycleDays?: number } }> = ({ bucketDays }) => {
 	return (
 		<div>
 			<div className="st-velocity-pillars">
@@ -280,6 +280,10 @@ const AvgDelayBoxes: React.FC<{ bucketDays?: { divisionExec?: number; divisionFi
 				<div className="st-pillar">
 					<div className="st-pillar-title">ZONAL EXECUTIVE</div>
 					<div className="st-pillar-value">{bucketDays?.hqExec ?? 0} DAYS</div>
+				</div>
+				<div className="st-pillar">
+					<div className="st-pillar-title">NWR LOOP CYCLE</div>
+					<div className="st-pillar-value">{bucketDays?.nwrLoopCycleDays ?? 0} DAYS</div>
 				</div>
 			</div>
 		</div>
@@ -483,13 +487,14 @@ const Vetting: React.FC = () => {
 	const [, setTimelineData] = useState<TimelineItem[] | undefined>(undefined);
 	const [, setQualitativeTags] = useState<string[] | undefined>(undefined);
 	const [, setCycleDays] = useState<number | undefined>(undefined);
-	const [bucketDays, setBucketDays] = useState<{ divisionExec?: number; divisionFinance?: number; hqExec?: number } | undefined>(undefined);
+	const [bucketDays, setBucketDays] = useState<{ divisionExec?: number; divisionFinance?: number; hqExec?: number, nwrLoopCycleDays?: number } | undefined>(undefined);
 	const avgVettingSumDays = useMemo(() => {
 		if (!bucketDays) return undefined;
 		const divisionExec = Number(bucketDays.divisionExec ?? 0);
 		const divisionFinance = Number(bucketDays.divisionFinance ?? 0);
 		const hqExec = Number(bucketDays.hqExec ?? 0);
-		return Math.max(0, Math.round(divisionExec + divisionFinance + hqExec));
+		const nwrLoopCycleDays = Number(bucketDays.nwrLoopCycleDays ?? 0);
+		return Math.max(0, Math.round(divisionExec + divisionFinance + hqExec + nwrLoopCycleDays));
 	}, [bucketDays]);
 	const velocityBucketOrder = ["DIVISION_EXECUTIVE", "DIVISION_FINANCE", "HQ_EXECUTIVE"] as const;
 	const worksForSelectedPlanHead = useMemo<WorkListItem[]>(() => {
@@ -533,6 +538,7 @@ const Vetting: React.FC = () => {
 		const divisionFinance = avgByBucket["DIVISION_FINANCE"];
 		const hqExec = avgByBucket["HQ_EXECUTIVE"] ?? 0;
 		const cycle = Math.max(0, Math.round(divisionExec + (divisionFinance ?? 0) + hqExec));
+		const nwrLoopCycleDays = avgByBucket["NWR_LOOP_CYCLE"] ?? 0;
 
 		return {
 			timeline,
@@ -542,6 +548,7 @@ const Vetting: React.FC = () => {
 				divisionExec,
 				divisionFinance,
 				hqExec,
+				nwrLoopCycleDays,
 			},
 		};
 	};
@@ -574,6 +581,7 @@ const Vetting: React.FC = () => {
 				addDelay("DIVISION_EXECUTIVE", delayRoot.executiveDelayDays);
 				addDelay("DIVISION_FINANCE", delayRoot.financeDelayDays);
 				addDelay("HQ_EXECUTIVE", delayRoot.hqDelayDays);
+				addDelay("NWR_LOOP_CYCLE", delayRoot.nwrLoopCycleDays);
 
 				// IMPORTANT: Backend already sent the average. 
 				// Pass divisor 1 to buildVelocityFromBucketSums to avoid double-dividing.
@@ -585,6 +593,7 @@ const Vetting: React.FC = () => {
 				addDelay("DIVISION_EXECUTIVE", delayRoot.delays.executiveDelayDays);
 				addDelay("DIVISION_FINANCE", delayRoot.delays.financeDelayDays);
 				addDelay("HQ_EXECUTIVE", delayRoot.delays.hqDelayDays);
+				addDelay("NWR_LOOP_CYCLE", delayRoot.delays.nwrLoopCycleDays);
 				const worksCount = selectedDocs.length || Number(delayRoot.works || delayRoot.totalWorks || 1);
 				return buildVelocityFromBucketSums(sumByBucket, worksCount);
 			}
@@ -699,6 +708,7 @@ const Vetting: React.FC = () => {
 			cycleDays: works ? Math.max(0, Math.round(totalSumDays / works)) : 0,
 			bucketDays: {
 				divisionExec: avgByBucket["DIVISION_EXECUTIVE"] ?? 0,
+				nwrLoopCycleDays: avgByBucket["NWR_LOOP_CYCLE"] ?? 0,
 				divisionFinance: avgByBucket["DIVISION_FINANCE"],
 				hqExec: avgByBucket["HQ_EXECUTIVE"] ?? 0,
 			},
@@ -723,16 +733,10 @@ const Vetting: React.FC = () => {
 				);
 				setPlanHeads((prev) => (phs.length ? phs : prev));
 
-				// Use recent PH logic only for the 'period' range.
-				// For all other ranges (all-time, 5d, etc.), we switch to ALL planheads global view.
-				const chosen = (timeRange === 'period')
-					? (phs.length ? phs[0] : "PH-11 (NEW LINES)")
-					: (selectedPlanHead || ALL_PH_KEY);
+				const savedPH = localStorage.getItem("selectedPlanHead");
+				const chosen = (savedPH && phs.includes(savedPH)) ? savedPH : (phs.length ? phs[0] : "PH-11 (NEW LINES)");
 
-				if (chosen !== selectedPlanHead) {
-					setSelectedPlanHead(chosen);
-				}
-
+				setSelectedPlanHead(chosen);
 				const derived = deriveFromApi(data, chosen);
 				setAnalytics(derived.analytics);
 				setCurrentWorkName(derived.workName);
