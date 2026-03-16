@@ -706,7 +706,6 @@ const Vetting: React.FC = () => {
 	}
 
 	// This effect is intended to run only once on mount to initialize dashboard data.
-	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect(() => {
 		(async () => {
 			try {
@@ -780,6 +779,7 @@ const Vetting: React.FC = () => {
 				setLoading(false);
 			}
 		})();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [timeRange, customStart, customEnd, navigate]);
 
 	return (

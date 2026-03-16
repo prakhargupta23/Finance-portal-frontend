@@ -1,6 +1,5 @@
 /** @format */
 
-import { Try } from "@mui/icons-material";
 import { userService } from "../services/user.service";
 import { config } from "../shared/constants/config";
 import pako from "pako";
