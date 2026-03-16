@@ -48,7 +48,11 @@ const calculateRange = (range: TimeRange, customStart?: string, customEnd?: stri
 		case 'custom':
 			return {
 				start: customStart ? new Date(customStart).toISOString() : undefined,
-				end: customEnd ? new Date(customEnd).toISOString() : undefined
+				end: customEnd ? (() => { 
+					const customEndDate = new Date(customEnd); 
+					customEndDate.setHours(23, 59, 59, 999); 
+					return customEndDate.toISOString(); 
+				})() : undefined
 			};
 		case 'period':
 		case 'all': default: return { start: undefined, end: undefined };
@@ -327,7 +331,7 @@ const Ingestion: React.FC<{ onFetch: (data: any) => void; loading: boolean; fetc
 const CustomTooltip = ({ active, payload, label }: any) => {
 	if (active && payload && payload.length) {
 		const data = payload[0].payload;
-		const total = (data.Executive || 0) + (data.Finance || 0) + (data.Zonal || 0);
+		const total = (data.Executive || 0) + (data.Finance || 0) + (data.Zonal || 0) + (data.NWRLoop || 0);
 		return (
 			<div className="st-tooltip-custom">
 				<div className="st-tooltip-header">{data.fullName || label}</div>
@@ -346,6 +350,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 				<div className="st-tooltip-item">
 					<span className="st-tooltip-label">ZONAL EXECUTIVE:</span>
 					<span className="st-tooltip-value" style={{ color: '#6366f1' }}>{data.Zonal} Days</span>
+				</div>
+				<div className="st-tooltip-item">
+					<span className="st-tooltip-label">NWR LOOP CYCLE:</span>
+					<span className="st-tooltip-value" style={{ color: '#f59e0b' }}>{data.NWRLoop} Days</span>
 				</div>
 				<div className="st-tooltip-item" style={{ borderTop: '1px solid #f1f5f9', marginTop: '8px', paddingTop: '4px' }}>
 					<span className="st-tooltip-label" style={{ fontWeight: 800 }}>Total Avg:</span>
@@ -379,6 +387,7 @@ const PlanHeadComparisonChart: React.FC<{ data: any[]; loading?: boolean }> = ({
 		'Executive': item.executiveDelayDays,
 		'Finance': item.financeDelayDays,
 		'Zonal': item.hqDelayDays,
+		'NWRLoop': item.nwrLoopCycleDays || 0,
 		'Total': item.totalCycleDays
 	}));
 
@@ -403,6 +412,10 @@ const PlanHeadComparisonChart: React.FC<{ data: any[]; loading?: boolean }> = ({
 							<linearGradient id="gradHq" x1="0" y1="0" x2="0" y2="1">
 								<stop offset="0%" stopColor="#818cf8" />
 								<stop offset="100%" stopColor="#6366f1" />
+							</linearGradient>
+							<linearGradient id="gradNwr" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stopColor="#fcd34d" />
+								<stop offset="100%" stopColor="#f59e0b" />
 							</linearGradient>
 						</defs>
 						<CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -443,9 +456,17 @@ const PlanHeadComparisonChart: React.FC<{ data: any[]; loading?: boolean }> = ({
 							dataKey="Zonal"
 							stackId="a"
 							fill="url(#gradHq)"
-							radius={[6, 6, 0, 0]}
+							radius={[0, 0, 0, 0]}
 							animationDuration={1500}
 							animationBegin={600}
+						/>
+						<Bar
+							dataKey="NWRLoop"
+							stackId="a"
+							fill="url(#gradNwr)"
+							radius={[6, 6, 0, 0]}
+							animationDuration={1500}
+							animationBegin={900}
 						/>
 					</BarChart>
 				</ResponsiveContainer>
@@ -462,6 +483,10 @@ const PlanHeadComparisonChart: React.FC<{ data: any[]; loading?: boolean }> = ({
 				<div className="st-legend-item">
 					<div className="st-legend-dot" style={{ background: '#6366f1' }} />
 					<span>ZONAL EXECUTIVE</span>
+				</div>
+				<div className="st-legend-item">
+					<div className="st-legend-dot" style={{ background: '#f59e0b' }} />
+					<span>NWR LOOP CYCLE</span>
 				</div>
 			</div>
 		</div>
@@ -774,9 +799,13 @@ const Vetting: React.FC = () => {
 						setQualitativeTags(delayDerived.tags);
 						setCycleDays(delayDerived.cycleDays);
 						setBucketDays(delayDerived.bucketDays);
+						setAnalytics(prev => ({ ...prev, avgDays: `${delayDerived.cycleDays} DAYS` }));
 					}
 				} catch {
-					// keep derived fallback from get-vetting-data
+					setTimelineData([]);
+					setCycleDays(0);
+					setBucketDays({ divisionExec: 0, divisionFinance: 0, hqExec: 0, nwrLoopCycleDays: 0 });
+					setAnalytics(prev => ({ ...prev, avgDays: '0 DAYS' }));
 				}
 			} catch (e) {
 				console.error("Error loading dashboard data", e);
@@ -855,7 +884,9 @@ const Vetting: React.FC = () => {
 										setBucketDays(delayDerived.bucketDays);
 									}
 								} catch {
-									// keep already-set fallback from get-vetting-data
+									setTimelineData([]);
+									setCycleDays(0);
+									setBucketDays({ divisionExec: 0, divisionFinance: 0, hqExec: 0, nwrLoopCycleDays: 0 });
 								}
 							})();
 						}}

@@ -8,6 +8,7 @@ export const vettingService = {
   getTableData,
   getMasterStatus,
   getLatestMasterStatus,
+  addManualGmDate,
 };
 
 async function getLatestMasterStatus() {
@@ -57,4 +58,8 @@ async function getPlanheadComparison(startDate?: string, endDate?: string) {
   if (startDate) params.set("startDate", startDate);
   if (endDate) params.set("endDate", endDate);
   return fetchWrapper.get(`${config.apiUrl}/api/get-vetting-delay?${params.toString()}`);
+}
+
+async function addManualGmDate(payload: { planhead: string; workname: string; s_no?: string; manualGmDate: string; role: string }) {
+  return fetchWrapper.post(`${config.apiUrl}/api/add-manual-gm-date`, payload);
 }

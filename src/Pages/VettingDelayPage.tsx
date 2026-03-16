@@ -28,6 +28,8 @@ type DelayView = {
 	lastDesignationDate?: string;
 	srdfmLastDate?: string;
 	drmLastDate?: string;
+	isManualOverride?: boolean;
+	overriddenBy?: string;
 };
 
 const toNumber = (value: any) => {
@@ -177,6 +179,8 @@ const extractDelayView = (payload: any): DelayView => {
 		lastDesignationDate: markers.lastDesignationDate || formatDate(markers.lastDesignationAt),
 		srdfmLastDate: markers.srdfmLastDate || formatDate(markers.srdfmLastAt),
 		drmLastDate: markers.drmLastDate || formatDate(markers.drmLastAt),
+		isManualOverride: payload?.meta?.isManualOverride || delayRoot?.meta?.isManualOverride || payload?.isManualOverride,
+		overriddenBy: payload?.meta?.overriddenBy || delayRoot?.meta?.overriddenBy || payload?.overriddenBy,
 	};
 };
 
@@ -191,6 +195,12 @@ const VettingDelayPage: React.FC = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | undefined>(undefined);
 	const [delayView, setDelayView] = useState<DelayView | undefined>(undefined);
+
+	// Modal State
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [manualDate, setManualDate] = useState("");
+	const [manualRole, setManualRole] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const workTitle = (workname || "PROJECT INITIATION").toUpperCase();
 
@@ -278,6 +288,30 @@ const VettingDelayPage: React.FC = () => {
 		})();
 	}, [planHead, workname, sNo]);
 
+	const handleSaveManualDate = async () => {
+		if (!manualDate || !manualRole) {
+			alert("Please fill in both Date and Role.");
+			return;
+		}
+		try {
+			setIsSubmitting(true);
+			await vettingService.addManualGmDate({
+				planhead: planHead,
+				workname: workname,
+				s_no: sNo,
+				manualGmDate: manualDate,
+				role: manualRole
+			});
+			setIsModalOpen(false);
+			window.location.reload();
+		} catch (err) {
+			console.error(err);
+			alert("Failed to save manual GM Date.");
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
 	return (
 		<div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '48px 24px', fontFamily: '"Inter", sans-serif' }}>
 			<style>{`
@@ -308,7 +342,37 @@ const VettingDelayPage: React.FC = () => {
 				.st-step-tag { background: #fff; border: 1px solid #e2e8f0; color: #475569; padding: 4px 12px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
 				.st-step-desc { font-size: 14px; font-weight: 500; color: #64748b; margin-top: 12px; }
 				.st-step-large-val { font-size: 20px; font-weight: 800; color: #0f172a; }
+
+				.st-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 999; }
+				.st-modal { background: #fff; padding: 32px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+				.st-modal-title { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 24px; }
+				.st-modal-label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; text-transform: uppercase; }
+				.st-modal-input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; margin-bottom: 20px; outline: none; transition: border-color 0.2s; box-sizing: border-box;}
+				.st-modal-input:focus { border-color: #2563eb; }
+				.st-modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+				.st-btn-outline { background: #fff; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 8px; font-weight: 700; color: #475569; cursor: pointer; }
+				.st-btn-save { background: #2563eb; border: 1px solid #2563eb; padding: 10px 20px; border-radius: 8px; font-weight: 700; color: #fff; cursor: pointer; }
+				.st-override-badge { font-size: 10px; font-weight: 800; color: #059669; background: #d1fae5; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-top: 4px; border: 1px solid #a7f3d0;}
+				.st-btn-edit { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 13px; font-weight: 600; text-decoration: underline; margin-left:8px;}
 			`}</style>
+
+			{isModalOpen && (
+				<div className="st-modal-overlay">
+					<div className="st-modal">
+						<div className="st-modal-title">Override GM Date</div>
+						<label className="st-modal-label">Manual GM Date</label>
+						<input type="date" className="st-modal-input" value={manualDate} onChange={(e) => setManualDate(e.target.value)} />
+						<label className="st-modal-label">Added By Role</label>
+						<input type="text" className="st-modal-input" placeholder="e.g. Divisional Executive" value={manualRole} onChange={(e) => setManualRole(e.target.value)} />
+						<div className="st-modal-actions">
+							<button className="st-btn-outline" onClick={() => setIsModalOpen(false)}>Cancel</button>
+							<button className="st-btn-save" onClick={handleSaveManualDate} disabled={isSubmitting}>
+								{isSubmitting ? "Saving..." : "Save Date"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 
 			<div className="st-dd-container">
 				<div className="st-dd-nav-row">
@@ -335,9 +399,15 @@ const VettingDelayPage: React.FC = () => {
 						</div>
 						<div>
 							<div className="st-stat-label">GM Review Status</div>
-							<div className={`st-stat-value ${!delayView?.gmMatched ? 'st-error-text' : ''}`}>
-								{delayView?.gmMatched ? (delayView.gmApprovalDate || "Verified") : "⚠️ GM DATE NOT MATCHED"}
+							<div className={`st-stat-value ${!delayView?.gmMatched && !delayView?.isManualOverride ? 'st-error-text' : ''}`}>
+								{delayView?.gmMatched || delayView?.isManualOverride ? (delayView.gmApprovalDate || "Verified") : "⚠️ GM DATE NOT MATCHED"}
+								<button className="st-btn-edit" onClick={() => setIsModalOpen(true)}>✏️ Edit</button>
 							</div>
+							{delayView?.isManualOverride && (
+								<div className="st-override-badge">
+									Updated
+								</div>
+							)}
 						</div>
 					</div>
 				</div>
