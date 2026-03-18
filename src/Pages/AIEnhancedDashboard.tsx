@@ -43,7 +43,6 @@ const AIEnhancedDashboard: React.FC = () => {
       style={{
         minHeight: "100vh",
         position: "relative",
-        overflow: "hidden",
         background:
           "radial-gradient(1200px 500px at 12% -12%, rgba(59,130,246,0.32), transparent 55%), radial-gradient(900px 500px at 100% 0%, rgba(99,102,241,0.28), transparent 55%), linear-gradient(180deg, #0b1022 0%, #111a36 45%, #0d142d 100%)",
         padding: "20px",
