@@ -283,7 +283,7 @@ const Review = ({ onReplace }: { onReplace: (row: any) => void }) => {
     const phRaw = (row.planhead || "").toUpperCase();
     const phDisplay = formatPlanHeadDisplay(phRaw);
 
-    // Extract numbers: e.g. "17" from "PH-17" or "17-Computerisation"
+    // Extract numbers: e.g. "17" from "PH-17" or "17-Computerisation done "
     const queryNum = phQuery.match(/\d+/)?.[0];
     const targetNum = phRaw.match(/\d+/)?.[0];
 
