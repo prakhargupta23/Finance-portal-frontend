@@ -2,6 +2,18 @@ import React, { useEffect, useMemo, useState } from "react";
 import "../css/dashboard.css";
 import { vettingService } from "../services/vetting.service";
 import { useNavigate } from "react-router-dom";
+import {
+	BarChart,
+	Bar,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Tooltip,
+	Legend,
+	ResponsiveContainer,
+	Cell,
+	Label
+} from "recharts";
 
 type TimelineItem = {
 	title: string;
@@ -18,10 +30,90 @@ type WorkListItem = {
 	s_no: string;
 };
 
+const ALL_PH_KEY = "ALL_PLAN_HEADS";
+
+type TimeRange = 'period' | 'all' | '24h' | '5d' | '7d' | '1M' | '3M' | '6M' | 'custom';
+
+const calculateRange = (range: TimeRange, customStart?: string, customEnd?: string) => {
+	const end = new Date();
+	let start = new Date();
+
+	switch (range) {
+		case '24h': start.setHours(end.getHours() - 24); break;
+		case '5d': start.setDate(end.getDate() - 5); break;
+		case '7d': start.setDate(end.getDate() - 7); break;
+		case '1M': start.setMonth(end.getMonth() - 1); break;
+		case '3M': start.setMonth(end.getMonth() - 3); break;
+		case '6M': start.setMonth(end.getMonth() - 6); break;
+		case 'custom':
+			return {
+				start: customStart ? new Date(customStart).toISOString() : undefined,
+				end: customEnd ? new Date(customEnd).toISOString() : undefined
+			};
+		case 'period':
+		case 'all': default: return { start: undefined, end: undefined };
+	}
+	return { start: start.toISOString(), end: end.toISOString() };
+};
+
+const TimeFilter: React.FC<{
+	selected: TimeRange;
+	onChange: (range: TimeRange) => void;
+	customStart: string;
+	customEnd: string;
+	onCustomStartChange: (val: string) => void;
+	onCustomEndChange: (val: string) => void;
+}> = ({ selected, onChange, customStart, customEnd, onCustomStartChange, onCustomEndChange }) => {
+	const ranges: { label: string; value: TimeRange }[] = [
+		{ label: 'PERIOD', value: 'period' },
+		{ label: 'ALL TIME', value: 'all' },
+		{ label: '24H', value: '24h' },
+		{ label: '5D', value: '5d' },
+		{ label: '7D', value: '7d' },
+		{ label: '1M', value: '1M' },
+		{ label: '3M', value: '3M' },
+		{ label: '6M', value: '6M' },
+		{ label: 'CUSTOM', value: 'custom' },
+	];
+
+	return (
+		<div className="st-filter-bar">
+			{ranges.map((r) => (
+				<button
+					key={r.value}
+					className={`st-filter-btn ${selected === r.value ? 'active' : ''}`}
+					onClick={() => onChange(r.value)}
+				>
+					{r.label}
+				</button>
+			))}
+
+			{selected === 'custom' && (
+				<div className="st-custom-date">
+					<input
+						type="date"
+						className="st-date-field"
+						value={customStart}
+						onChange={(e) => onCustomStartChange(e.target.value)}
+					/>
+					<span style={{ color: '#94a3b8', fontSize: '10px', fontWeight: 700 }}>TO</span>
+					<input
+						type="date"
+						className="st-date-field"
+						value={customEnd}
+						onChange={(e) => onCustomEndChange(e.target.value)}
+					/>
+				</div>
+			)}
+		</div>
+	);
+};
+
 // << VISUAL REFINEMENT START >>
 // Purpose: Convert messy OCR strings into clean labels like "PH-29" by stripping junk prefixes.
 const formatPlanHeadDisplay = (value: string): string => {
 	if (!value) return "";
+	if (value === ALL_PH_KEY) return "ALL";
 	let cleaned = value.toUpperCase();
 
 	// Strip common junk prefixes instead of failing
@@ -71,8 +163,8 @@ const ControlHub: React.FC<{
 	planHeads: string[];
 	selectedPlanHead: string;
 	onSelectPlanHead: (ph: string) => void;
-	analytics: { works: number; avgDays: string };
-	bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number };
+	analytics: { works: number; avgDays: string; nwrCycleAvg?: number };
+	bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number; nwrLoopCycleAvg?: number };
 }> = ({
 	planHeads,
 	selectedPlanHead,
@@ -100,6 +192,7 @@ const ControlHub: React.FC<{
 									<span className="st-k">TOTAL(AVG. VETTING DAYS)</span>
 									<span className="st-v">{analytics.avgDays}</span>
 								</div>
+
 								<div className="st-kv" style={{ marginTop: 8 }}>
 									<span className="st-k">SELECT PLAN HEAD</span>
 									<span className="st-v">
@@ -108,6 +201,7 @@ const ControlHub: React.FC<{
 											value={selectedPlanHead}
 											onChange={(e) => onSelectPlanHead(e.target.value)}
 										>
+											<option value={ALL_PH_KEY}>ALL PLAN HEADS</option>
 											{planHeads
 												.filter(ph => formatPlanHeadDisplay(ph) !== "")
 												.map((ph) => (
@@ -172,10 +266,10 @@ const AdministrativeVelocity: React.FC<{
 	);
 };
 
-const AvgDelayBoxes: React.FC<{ bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number } }> = ({ bucketDays }) => {
+const AvgDelayBoxes: React.FC<{ bucketDays?: { divisionExec?: number; divisionFinance?: number; hqExec?: number; nwrLoopCycleAvg?: number } }> = ({ bucketDays }) => {
 	return (
 		<div>
-			<div className="st-velocity-pillars">
+			<div className="st-velocity-pillars" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
 				<div className="st-pillar">
 					<div className="st-pillar-title">DIVISION EXECUTIVE</div>
 					<div className="st-pillar-value">{bucketDays?.divisionExec ?? 0} DAYS</div>
@@ -187,6 +281,10 @@ const AvgDelayBoxes: React.FC<{ bucketDays?: { divisionExec?: number; divisionFi
 				<div className="st-pillar">
 					<div className="st-pillar-title">ZONAL EXECUTIVE</div>
 					<div className="st-pillar-value">{bucketDays?.hqExec ?? 0} DAYS</div>
+				</div>
+				<div className="st-pillar">
+					<div className="st-pillar-title">NWR CYCLE</div>
+					<div className="st-pillar-value">{bucketDays?.nwrLoopCycleAvg ?? 0} DAYS</div>
 				</div>
 			</div>
 		</div>
@@ -227,32 +325,210 @@ const Ingestion: React.FC<{ onFetch: (data: any) => void; loading: boolean; fetc
 	);
 };
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+	if (active && payload && payload.length) {
+		const data = payload[0].payload;
+		const total = (data.Executive || 0) + (data.Finance || 0) + (data.Zonal || 0) + (data.nwrCycle || 0);
+		return (
+			<div className="st-tooltip-custom">
+				<div className="st-tooltip-header">{data.fullName || label}</div>
+				<div className="st-tooltip-item">
+					<span className="st-tooltip-label">Projects:</span>
+					<span className="st-tooltip-value">{data.projects} Works</span>
+				</div>
+				<div className="st-tooltip-item">
+					<span className="st-tooltip-label">NWR CYCLE:</span>
+					<span className="st-tooltip-value" style={{ color: '#f59e0b', fontWeight: 700 }}>{data.nwrCycle} Days</span>
+				</div>
+				<div className="st-tooltip-item">
+					<span className="st-tooltip-label">DIVISION EXECUTIVE:</span>
+					<span className="st-tooltip-value" style={{ color: '#3b82f6' }}>{data.Executive} Days</span>
+				</div>
+				<div className="st-tooltip-item">
+					<span className="st-tooltip-label">DIVISION FINANCE:</span>
+					<span className="st-tooltip-value" style={{ color: '#10b981' }}>{data.Finance} Days</span>
+				</div>
+				<div className="st-tooltip-item">
+					<span className="st-tooltip-label">ZONAL EXECUTIVE:</span>
+					<span className="st-tooltip-value" style={{ color: '#6366f1' }}>{data.Zonal} Days</span>
+				</div>
+				<div className="st-tooltip-item">
+					<span className="st-tooltip-label">NWR LOOP CYCLE:</span>
+					<span className="st-tooltip-value" style={{ color: '#f59e0b', fontWeight: 700 }}>{data.nwrCycle} Days</span>
+				</div>
+				<div className="st-tooltip-item" style={{ borderTop: '1px solid #f1f5f9', marginTop: '8px', paddingTop: '4px' }}>
+					<span className="st-tooltip-label" style={{ fontWeight: 800 }}>Total Avg:</span>
+					<span className="st-tooltip-value" style={{ color: '#0f172a', fontWeight: 800 }}>{total} Days</span>
+				</div>
+			</div>
+		);
+	}
+	return null;
+};
+
+const PlanHeadComparisonChart: React.FC<{ data: any[]; loading?: boolean }> = ({ data, loading }) => {
+	if (loading) {
+		return (
+			<div className="st-chart-container st-skeleton" style={{ height: 320, width: '100%' }} />
+		);
+	}
+
+	if (!data || data.length === 0) {
+		return (
+			<div className="st-chart-container" style={{ height: 320, display: 'grid', placeItems: 'center', color: '#94a3b8' }}>
+				No comparison data available for current session.
+			</div>
+		);
+	}
+
+	const chartData = data.map(item => ({
+		name: (formatPlanHeadDisplay(item.planhead) || item.planhead).split(' ')[0],
+		fullName: formatPlanHeadDisplay(item.planhead),
+		projects: item.totalWorks,
+		'Executive': item.executiveDelayDays,
+		'Finance': item.financeDelayDays,
+		'Zonal': item.hqDelayDays,
+		'Total': item.totalCycleDays,
+		'nwrCycle': item.nwrLoopCycleAvg
+	}));
+
+	return (
+		<div className="st-chart-container">
+			<div style={{ width: '100%', height: 340 }}>
+				<ResponsiveContainer width="100%" height="100%">
+					<BarChart
+						data={chartData}
+						margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+						barGap={0}
+					>
+						<defs>
+							<linearGradient id="gradExec" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stopColor="#60a5fa" />
+								<stop offset="100%" stopColor="#3b82f6" />
+							</linearGradient>
+							<linearGradient id="gradFin" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stopColor="#34d399" />
+								<stop offset="100%" stopColor="#10b981" />
+							</linearGradient>
+							<linearGradient id="gradHq" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stopColor="#818cf8" />
+								<stop offset="100%" stopColor="#6366f1" />
+							</linearGradient>
+							<linearGradient id="gradNwr" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stopColor="#fbbf24" />
+								<stop offset="100%" stopColor="#f59e0b" />
+							</linearGradient>
+						</defs>
+						<CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+						<XAxis
+							dataKey="name"
+							axisLine={false}
+							tickLine={false}
+							tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+							dy={10}
+						>
+							<Label value="PLAN HEAD" offset={-10} position="insideBottom" style={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600, textTransform: 'uppercase' }} />
+						</XAxis>
+						<YAxis
+							axisLine={false}
+							tickLine={false}
+							tick={{ fill: '#94a3b8', fontSize: 11 }}
+						>
+							<Label value="DAYS" angle={-90} position="insideLeft" style={{ textAnchor: 'middle', fill: '#94a3b8', fontSize: 12, fontWeight: 600, textTransform: 'uppercase' }} />
+						</YAxis>
+						<Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+						<Bar
+							dataKey="Executive"
+							stackId="a"
+							fill="url(#gradExec)"
+							radius={[0, 0, 0, 0]}
+							barSize={32}
+							animationDuration={1500}
+						/>
+						<Bar
+							dataKey="Finance"
+							stackId="a"
+							fill="url(#gradFin)"
+							radius={[0, 0, 0, 0]}
+							animationDuration={1500}
+							animationBegin={300}
+						/>
+						<Bar
+							dataKey="Zonal"
+							stackId="a"
+							fill="url(#gradHq)"
+							radius={[0, 0, 0, 0]}
+							animationDuration={1500}
+							animationBegin={600}
+						/>
+						<Bar
+							dataKey="nwrCycle"
+							stackId="a"
+							fill="url(#gradNwr)"
+							radius={[6, 6, 0, 0]}
+							animationDuration={1500}
+							animationBegin={900}
+						/>
+					</BarChart>
+				</ResponsiveContainer>
+			</div>
+			<div className="st-chart-legend" style={{ marginTop: '10px', paddingRight: '20px' }}>
+				<div className="st-legend-item">
+					<div className="st-legend-dot" style={{ background: '#3b82f6' }} />
+					<span>DIVISION EXECUTIVE</span>
+				</div>
+				<div className="st-legend-item">
+					<div className="st-legend-dot" style={{ background: '#10b981' }} />
+					<span>DIVISION FINANCE</span>
+				</div>
+				<div className="st-legend-item">
+					<div className="st-legend-dot" style={{ background: '#6366f1' }} />
+					<span>ZONAL EXECUTIVE</span>
+				</div>
+				<div className="st-legend-item">
+					<div className="st-legend-dot" style={{ background: '#f59e0b' }} />
+					<span>NWR CYCLE</span>
+				</div>
+			</div>
+		</div>
+	);
+};
+
 const Vetting: React.FC = () => {
 	const [page] = useState<"dashboard" | "ingestion">("dashboard");
 	const [loading, setLoading] = useState(false);
+	const [compLoading, setCompLoading] = useState(false);
 	const [vettingData, setVettingData] = useState<any>(null);
+	const [comparisonData, setComparisonData] = useState<any[]>([]);
 	const [error, setError] = useState<string | undefined>(undefined);
 	const navigate = useNavigate();
+
+	const [timeRange, setTimeRange] = useState<TimeRange>('period');
+	const [customStart, setCustomStart] = useState<string>('');
+	const [customEnd, setCustomEnd] = useState<string>('');
 	const [planHeads, setPlanHeads] = useState<string[]>(["PH-11 (NEW LINES)"]);
 	const [selectedPlanHead, setSelectedPlanHead] = useState<string>(localStorage.getItem("selectedPlanHead") || "PH-11 (NEW LINES)");
-	const [analytics, setAnalytics] = useState<{ works: number; avgDays: string }>({ works: 1, avgDays: "22.0 DAYS" });
+	const [analytics, setAnalytics] = useState<{ works: number; avgDays: string; nwrCycleAvg?: number }>({ works: 1, avgDays: "22.0 DAYS", nwrCycleAvg: 0 });
 	const [currentWorkName, setCurrentWorkName] = useState<string | undefined>(undefined);
 	const [, setTimelineData] = useState<TimelineItem[] | undefined>(undefined);
 	const [, setQualitativeTags] = useState<string[] | undefined>(undefined);
 	const [, setCycleDays] = useState<number | undefined>(undefined);
-	const [bucketDays, setBucketDays] = useState<{ divisionExec?: number; divisionFinance?: number; hqExec?: number } | undefined>(undefined);
+	const [bucketDays, setBucketDays] = useState<{ divisionExec?: number; divisionFinance?: number; hqExec?: number; nwrLoopCycleAvg?: number } | undefined>(undefined);
 	const avgVettingSumDays = useMemo(() => {
 		if (!bucketDays) return undefined;
 		const divisionExec = Number(bucketDays.divisionExec ?? 0);
 		const divisionFinance = Number(bucketDays.divisionFinance ?? 0);
 		const hqExec = Number(bucketDays.hqExec ?? 0);
-		return Math.max(0, Math.round(divisionExec + divisionFinance + hqExec));
+		const nwrCycle = Number(bucketDays.nwrLoopCycleAvg ?? 0);
+		// Force zero if all are zero to keep UI clean, otherwise round the sum
+		const sumValue = divisionExec + divisionFinance + hqExec + nwrCycle;
+		return sumValue > 0 ? Math.round(sumValue) : 0;
 	}, [bucketDays]);
 	const velocityBucketOrder = ["DIVISION_EXECUTIVE", "DIVISION_FINANCE", "HQ_EXECUTIVE"] as const;
 	const worksForSelectedPlanHead = useMemo<WorkListItem[]>(() => {
 		const docs: any[] = vettingData?.vettingData?.docdata ?? [];
 		return docs
-			.filter((doc) => String(doc.planhead) === String(selectedPlanHead))
+			.filter((doc) => selectedPlanHead === ALL_PH_KEY || String(doc.planhead) === String(selectedPlanHead))
 			.map((doc) => ({
 				workname: String(doc.workname || "").trim(),
 				planhead: String(doc.planhead || "").trim(),
@@ -265,7 +541,7 @@ const Vetting: React.FC = () => {
 		navigate(`/vetting/delay?${query}`);
 	};
 
-	const buildVelocityFromBucketSums = (sumByBucket: Record<string, number>, worksCount: number) => {
+	const buildVelocityFromBucketSums = (sumByBucket: Record<string, number>, worksCount: number, nwrLoopCycleAvg?: number) => {
 		const divisor = worksCount > 0 ? worksCount : 1;
 		const avgByBucket: Record<string, number> = {};
 		Object.keys(sumByBucket).forEach((k) => {
@@ -299,14 +575,16 @@ const Vetting: React.FC = () => {
 				divisionExec,
 				divisionFinance,
 				hqExec,
+				nwrLoopCycleAvg: nwrLoopCycleAvg ?? 0,
 			},
 		};
 	};
 
 	const deriveVelocityFromDelayApi = (delayPayload: any, ph: string, docs: any[]) => {
-		const selectedDocs = (docs || []).filter((d: any) => String(d.planhead) === String(ph));
+		const selectedDocs = (ph === ALL_PH_KEY) ? (docs || []) : (docs || []).filter((d: any) => String(d.planhead) === String(ph));
 		const selectedUuids = new Set(selectedDocs.map((d: any) => String(d.uuid)));
 		const delayRoot = delayPayload?.vettingData?.delayData ?? delayPayload?.delayData ?? delayPayload;
+		const nwrLoopCycleAvg = delayPayload?.nwrLoopCycleAvg ?? 0;
 		if (!delayRoot) return null;
 
 		const sumByBucket: Record<string, number> = {};
@@ -319,10 +597,10 @@ const Vetting: React.FC = () => {
 		};
 
 		if (Array.isArray(delayRoot)) {
-			const rows = delayRoot.filter((r: any) => !r?.planhead || String(r.planhead) === String(ph));
+			const rows = (ph === ALL_PH_KEY) ? delayRoot : delayRoot.filter((r: any) => !r?.planhead || String(r.planhead) === String(ph));
 			rows.forEach((r: any) => addDelay(r.bucket ?? r.delayBucket ?? r.stage ?? r.name, r.delayDays ?? r.days ?? r.value));
 			const worksCount = selectedDocs.length || rows.length || 1;
-			return buildVelocityFromBucketSums(sumByBucket, worksCount);
+			return buildVelocityFromBucketSums(sumByBucket, worksCount, nwrLoopCycleAvg);
 		}
 
 		if (typeof delayRoot === "object") {
@@ -332,9 +610,8 @@ const Vetting: React.FC = () => {
 				addDelay("DIVISION_FINANCE", delayRoot.financeDelayDays);
 				addDelay("HQ_EXECUTIVE", delayRoot.hqDelayDays);
 
-				// IMPORTANT: Backend already sent the average. 
 				// Pass divisor 1 to buildVelocityFromBucketSums to avoid double-dividing.
-				return buildVelocityFromBucketSums(sumByBucket, 1);
+				return buildVelocityFromBucketSums(sumByBucket, 1, nwrLoopCycleAvg);
 			}
 
 			// Shape: { delays: { executiveDelayDays, financeDelayDays, hqDelayDays } }
@@ -343,7 +620,7 @@ const Vetting: React.FC = () => {
 				addDelay("DIVISION_FINANCE", delayRoot.delays.financeDelayDays);
 				addDelay("HQ_EXECUTIVE", delayRoot.delays.hqDelayDays);
 				const worksCount = selectedDocs.length || Number(delayRoot.works || delayRoot.totalWorks || 1);
-				return buildVelocityFromBucketSums(sumByBucket, worksCount);
+				return buildVelocityFromBucketSums(sumByBucket, worksCount, nwrLoopCycleAvg);
 			}
 
 			const entries = Object.entries(delayRoot);
@@ -357,7 +634,7 @@ const Vetting: React.FC = () => {
 					arr.forEach((d: any) => addDelay(d.bucket, d.delayDays));
 				});
 				const worksCount = selectedDocs.length || keys.length || 1;
-				return buildVelocityFromBucketSums(sumByBucket, worksCount);
+				return buildVelocityFromBucketSums(sumByBucket, worksCount, nwrLoopCycleAvg);
 			}
 
 			const bucketObj =
@@ -376,7 +653,7 @@ const Vetting: React.FC = () => {
 			}
 
 			const worksCount = selectedDocs.length || Number(delayRoot.works || delayRoot.totalWorks || 1);
-			return buildVelocityFromBucketSums(sumByBucket, worksCount);
+			return buildVelocityFromBucketSums(sumByBucket, worksCount, nwrLoopCycleAvg);
 		}
 
 		return null;
@@ -388,7 +665,7 @@ const Vetting: React.FC = () => {
 		const delays: Record<string, { bucket: string; enteredAt: string; exitedAt: string; delayDays: number }[]> =
 			raw?.vettingData?.delayData ?? {};
 
-		const filteredDocs = docs.filter((d) => String(d.planhead) === String(ph));
+		const filteredDocs = (ph === ALL_PH_KEY) ? docs : docs.filter((d) => String(d.planhead) === String(ph));
 		const uuids = filteredDocs.map((d) => d.uuid);
 
 		const works = filteredDocs.length || 0;
@@ -449,7 +726,7 @@ const Vetting: React.FC = () => {
 			}));
 
 		return {
-			analytics: { works, avgDays: `${avgTotalDelay} DAYS` },
+			analytics: { works, avgDays: `${avgTotalDelay} DAYS`, nwrCycleAvg: raw.nwrLoopCycleAvg ?? 0 },
 			workName: filteredDocs[0]?.workname,
 			timeline: tl,
 			tags: Array.from(buckets).length ? Array.from(buckets) : undefined,
@@ -458,6 +735,7 @@ const Vetting: React.FC = () => {
 				divisionExec: avgByBucket["DIVISION_EXECUTIVE"] ?? 0,
 				divisionFinance: avgByBucket["DIVISION_FINANCE"],
 				hqExec: avgByBucket["HQ_EXECUTIVE"] ?? 0,
+				nwrLoopCycleAvg: raw.nwrLoopCycleAvg ?? 0,
 			},
 		};
 	}
@@ -466,9 +744,12 @@ const Vetting: React.FC = () => {
 	useEffect(() => {
 		(async () => {
 			try {
-				const data = await vettingService.getVettingData();
+				const { start, end } = calculateRange(timeRange, customStart, customEnd);
+				setLoading(true);
+				const data = await vettingService.getVettingData(start, end);
 				setVettingData(data);
-				// Derive plan heads from API (docdata.planhead)
+
+				// Use recent PH from data for the initial load
 				const phs: string[] = Array.from(
 					new Set(
 						(data?.vettingData?.docdata || []).map((x: any) => String(x.planhead)).filter(Boolean)
@@ -476,10 +757,16 @@ const Vetting: React.FC = () => {
 				);
 				setPlanHeads((prev) => (phs.length ? phs : prev));
 
-				const savedPH = localStorage.getItem("selectedPlanHead");
-				const chosen = (savedPH && phs.includes(savedPH)) ? savedPH : (phs.length ? phs[0] : "PH-11 (NEW LINES)");
+				// Use recent PH logic only for the 'period' range.
+				// For all other ranges (all-time, 5d, etc.), we switch to ALL planheads global view.
+				const chosen = (timeRange === 'period')
+					? (phs.length ? phs[0] : "PH-11 (NEW LINES)")
+					: (selectedPlanHead || ALL_PH_KEY);
 
-				setSelectedPlanHead(chosen);
+				if (chosen !== selectedPlanHead) {
+					setSelectedPlanHead(chosen);
+				}
+
 				const derived = deriveFromApi(data, chosen);
 				setAnalytics(derived.analytics);
 				setCurrentWorkName(derived.workName);
@@ -488,8 +775,25 @@ const Vetting: React.FC = () => {
 				setCycleDays(derived.cycleDays);
 				setBucketDays(derived.bucketDays);
 
+				// Comparison Chart
 				try {
-					const delayPayload = await vettingService.getVettingDelay(chosen);
+					setCompLoading(true);
+					const comp = await vettingService.getPlanheadComparison(start, end);
+					if (Array.isArray(comp)) {
+						setComparisonData(comp);
+					} else {
+						setComparisonData([]);
+					}
+				} catch (e) {
+					console.error("Failed to fetch comparison", e);
+					setComparisonData([]);
+				} finally {
+					setCompLoading(false);
+				}
+
+				// Detailed Delay Analytics
+				try {
+					const delayPayload = await vettingService.getVettingDelay(chosen, start, end);
 					const delayDerived = deriveVelocityFromDelayApi(
 						delayPayload,
 						chosen,
@@ -500,34 +804,61 @@ const Vetting: React.FC = () => {
 						setQualitativeTags(delayDerived.tags);
 						setCycleDays(delayDerived.cycleDays);
 						setBucketDays(delayDerived.bucketDays);
+						// Update analytics with the correct work count from the actual data
+						setAnalytics(prev => ({
+							...prev,
+							works: data?.vettingData?.docdata?.filter((d: any) => chosen === ALL_PH_KEY || String(d.planhead) === String(chosen)).length || 0
+						}));
 					}
 				} catch {
 					// keep derived fallback from get-vetting-data
 				}
 			} catch (e) {
-				// Silent fallback
+				console.error("Error loading dashboard data", e);
+			} finally {
+				setLoading(false);
 			}
 		})();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [timeRange, customStart, customEnd, navigate]);
 
 	return (
 		<div className="scrutiny-root">
-			<header className="st-header">
-				<div className="st-header-left">
-					<div>
-						<div className="st-title">SCRUTINY TERMINAL</div>
-						<div className="st-subtitle" style={{ marginBottom: '12px' }}>Vetting Terminal — HQ Finance Audit</div>
-						<div style={{ display: 'flex', gap: '8px' }}>
-							<button className={`st-tab ${page === "dashboard" ? "active" : ""}`} onClick={() => navigate("/")}>DASHBOARD</button>
-							<button className={`st-tab`} onClick={() => navigate("/Upload")}>INGESTION</button>
-						</div>
-					</div>
-				</div>
-			</header>
+			<div className="st-page-header">
+				<div className="st-title">SCRUTINY TERMINAL</div>
+				<div className="st-subtitle">Vetting Terminal — HQ Finance Audit</div>
+			</div>
+
+			<div className="st-nav-tabs">
+				<button
+					className={`st-tab ${page === "dashboard" ? "active" : ""}`}
+					onClick={() => navigate("/")}
+				>
+					DASHBOARD
+				</button>
+				<button className={`st-tab`} onClick={() => navigate("/Upload")}>
+					INGESTION
+				</button>
+			</div>
 
 			{page === "dashboard" && (
 				<>
+					<TimeFilter
+						selected={timeRange}
+						onChange={(r) => {
+							setTimeRange(r);
+							const nextPh =
+								r === "period"
+									? vettingData?.vettingData?.docdata?.[0]?.planhead || selectedPlanHead
+									: ALL_PH_KEY;
+							setSelectedPlanHead(nextPh);
+							localStorage.setItem("selectedPlanHead", nextPh);
+						}}
+						customStart={customStart}
+						customEnd={customEnd}
+						onCustomStartChange={setCustomStart}
+						onCustomEndChange={setCustomEnd}
+					/>
 					<ControlHub
 						planHeads={planHeads}
 						selectedPlanHead={selectedPlanHead}
@@ -546,7 +877,8 @@ const Vetting: React.FC = () => {
 
 							void (async () => {
 								try {
-									const delayPayload = await vettingService.getVettingDelay(ph);
+									const { start, end } = calculateRange(timeRange, customStart, customEnd);
+									const delayPayload = await vettingService.getVettingDelay(ph, start, end);
 									const delayDerived = deriveVelocityFromDelayApi(
 										delayPayload,
 										ph,
@@ -566,6 +898,7 @@ const Vetting: React.FC = () => {
 						analytics={{
 							...analytics,
 							avgDays: avgVettingSumDays !== undefined ? `${avgVettingSumDays} DAYS` : analytics.avgDays,
+							nwrCycleAvg: bucketDays?.nwrLoopCycleAvg ?? analytics.nwrCycleAvg,
 						}}
 						bucketDays={bucketDays}
 					/>
@@ -580,6 +913,22 @@ const Vetting: React.FC = () => {
 							onOpenDelayForWork={openDelayForWork}
 						/>
 					</Card>
+
+					<section style={{ marginTop: '24px' }}>
+						<div className="st-header-row">
+							<h2 className="st-section-title">PLAN HEAD COMPARISON</h2>
+							<div className="st-total-pipeline">TOP PERFORMING <span>PLAN HEADS</span></div>
+						</div>
+						<div className="st-premium-card">
+							<div className="st-card-head">
+								<h3>CUMULATIVE DELAY BY PLAN HEAD (AVG DAYS)</h3>
+								<div className="st-card-right">.</div>
+							</div>
+							<div className="st-card-body">
+								<PlanHeadComparisonChart data={comparisonData} loading={compLoading} />
+							</div>
+						</div>
+					</section>
 				</>
 			)}
 
@@ -606,7 +955,6 @@ const Vetting: React.FC = () => {
 					error={error}
 				/>
 			)}
-
 		</div>
 	);
 };
